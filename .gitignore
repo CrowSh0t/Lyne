@@ -1,0 +1,20 @@
+# --- Frontend (Node/React/Vue) ---
+node_modules/
+dist/
+build/
+.env
+.env.local
+npm-debug.log*
+
+# --- Backend (C# / .NET) ---
+bin/
+obj/
+appsettings.Development.json
+*.user
+*.suo
+.vs/
+.vscode/
+
+# --- OS сміття ---
+Thumbs.db
+.DS_Store
