@@ -7,19 +7,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Application.Contracts.Auth
 {
-    public class RegisterRequestDto
-    {
-        [Required, StringLength(50)]
-        public string Name { get; set; } = "";
-
-        [Required, EmailAddress, StringLength(254)]
-        public string Email { get; set; } = "";
-
-        [Required] // "YYYY-MM-DD"
-        public string Dob { get; set; } = "";
-
-        [Required, StringLength(2)]
-        public string Country { get; set; } = "UK";
-
-    }
+    public record RegisterRequestDto(
+         string Login,
+         string Email,
+         string Password,
+         string Name,
+         DateTime Dob,       // Тут має бути DateTime, тоді помилка конвертації зникне
+         string? Country     // ? означає, що поле може бути порожнім
+     );
 }

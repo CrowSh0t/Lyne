@@ -7,11 +7,8 @@ using System.Threading.Tasks;
 
 namespace Application.Contracts.Auth
 {
-    public class LoginRequestDto
-    {
-        [Required]
-        public string Login { get; set; } = ""; // email або username
-        [Required]
-        public string Password { get; set; } = "";
-    }
+    public record LoginRequestDto(
+         string Login,
+         string Password
+     );
 }

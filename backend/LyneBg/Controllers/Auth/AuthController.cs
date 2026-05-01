@@ -1,7 +1,7 @@
 ﻿using Application.Abstractions;
 using Application.Contracts.Auth;
+using Domains.Entities;
 using Infrastructure.Auth;
-using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -15,7 +15,7 @@ using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text;
 
-namespace RWA.Controllers
+namespace LyneBg.Controllers
 {
     [ApiController]
     [Route("api/auth")]
@@ -23,15 +23,18 @@ namespace RWA.Controllers
     {
         private readonly IWebHostEnvironment _env;
         private readonly IAuthService _auth;
-        private readonly RefreshOptions _refreshOpt;
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _cfg;
-        private readonly iEmailSender _smtp;
+        private readonly Application.Abstractions.IEmailSender _smtp;
 
-        public AuthController(IAuthService auth, IOptions<RefreshOptions> refreshOpt, IWebHostEnvironment env, UserManager<User> userManager, IConfiguration cfg, iEmailSender smtp)
+        public AuthController(
+            IAuthService auth,
+            IWebHostEnvironment env,
+            UserManager<User> userManager,
+            IConfiguration cfg,
+            Application.Abstractions.IEmailSender smtp)
         {
             _auth = auth;
-            _refreshOpt = refreshOpt.Value;
             _env = env;
             _userManager = userManager;
             _cfg = cfg;
@@ -55,11 +58,12 @@ namespace RWA.Controllers
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
             var isDev = _env.IsDevelopment();
 
+            // Викликаємо логін (передбачається, що AuthService тепер повертає тільки Access Token)
             var (ok, msg) = await _auth.LoginAsync(dto, ip, Response, isDev);
 
             if (!ok) return BadRequest(new { message = msg });
 
-            return Ok(new { message = "OK" }); // токенів нема в body
+            return Ok(new { message = "OK" });
         }
 
         [HttpPost("confirm-email")]
@@ -119,57 +123,5 @@ namespace RWA.Controllers
         }
 
         public record ResetPasswordDto(string Email, string Token, string NewPassword);
-
-
-
-        [HttpPost("refresh")]
-        [AllowAnonymous]
-        public async Task<IActionResult> Refresh()
-        {
-            var refreshToken = Request.Cookies["refresh_token"] ??
-                               Request.Headers["X-Refresh-Token"].FirstOrDefault();
-
-            if (string.IsNullOrEmpty(refreshToken))
-                return Unauthorized(new { message = "No refresh token" });
-
-            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var result = await _auth.RefreshAsync(refreshToken, ip);
-
-            if (!result.ok)
-                return Unauthorized(new { message = result.message });
-
-            var isLocalhost = Request.Host.Host.Contains("localhost");
-
-            // Встановлюємо access_token як HttpOnly cookie
-            Response.Cookies.Append("access_token", result.accessToken!, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = false,                     // false для localhost, true для production
-                SameSite = isLocalhost ? SameSiteMode.Lax : SameSiteMode.None,
-                Path = "/",
-                MaxAge = TimeSpan.FromMinutes(15)
-            });
-
-            // Якщо refresh_token оновлюється, теж встановлюємо
-            if (!string.IsNullOrEmpty(result.refreshToken))
-            {
-                Response.Cookies.Append("refresh_token", result.refreshToken, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = false,
-                    SameSite = isLocalhost ? SameSiteMode.Lax : SameSiteMode.None,
-                    Path = "/api/auth",
-                    MaxAge = TimeSpan.FromDays(7)
-                });
-            }
-
-            return Ok(new
-            {
-                accessToken = result.accessToken,
-                refreshToken = result.refreshToken
-            });
-        }
-
-
     }
 }
