@@ -18,3 +18,5 @@ appsettings.Development.json
 # --- OS сміття ---
 Thumbs.db
 .DS_Store
+backend/LyneBg/LyneBg.csproj
+/backend

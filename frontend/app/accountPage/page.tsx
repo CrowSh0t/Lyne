@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 
 
 export default function accountPage() {
-    const [activeTab, setActiveTab] = useState("login");
+    const [activeTab, setActiveTab] = useState("login"); // змінна для перевірки яка із вкладок вибрана
 
-    const [remember, setRemember] = useState(false);
+    const [remember, setRemember] = useState(false); 
 
     const [login, setLogin] = useState('');
     const [email, setEmail] = useState('');
@@ -16,8 +16,12 @@ export default function accountPage() {
     const [country, setCountry] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [day, setDay] = useState('');
+    const [month, setMonth] = useState('');
+    const [year, setYear] = useState('');
     const router = useRouter();
 
+    // Для логіну
     const handleLogin = async () => {
         setError('');
 
@@ -50,25 +54,27 @@ export default function accountPage() {
         }
     };
 
+    // Для реєстрації
     const handleRegister = async () => {
-        setError('')
-        if (!login || !password || !email || !country || !name) {
+        setError('');
+        if (!login || !password || !email || !country || !name || !day || !month || !year) {
             setError('Введіть значення.');
             return;
         }
         setLoading(true);
         try {
+            const dob = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`).toISOString();
+
             const res = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ login: login, password: password, name: name, email: email, country: country }),
+                body: JSON.stringify({ login, password, name, email, country, dob }),
             });
-
             const data = await res.json();
             console.log("STATUS:", res.status);
             console.log("RESPONSE:", data);
-            console.log(login, email,country,name);
+            console.log(login, email, country, name);
 
             if (!res.ok) {
                 setError(data.message || 'Помилка реєстрації.');
@@ -122,6 +128,7 @@ export default function accountPage() {
                 <div className="mt-4">
                     {activeTab === "login" ? (
                         <div >
+                            
                             <p>Email</p>
                             <input type="email"
                                 value={email}
@@ -133,6 +140,12 @@ export default function accountPage() {
                         </div>
                     ) : (
                         <div>
+                            <p>Login</p>
+                            <input type="text"
+                                value={login}
+                                onChange={(e) => setLogin(e.target.value)}
+                                className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]"
+                            />
                             <p>Email</p>
                             <input type="email"
                                 value={email}
@@ -141,14 +154,35 @@ export default function accountPage() {
                             <input type="name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)} className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]" />
-                            {/* <div>
+                            <div>
                                 <p>Birthday day</p>
-                                <input className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]" />
-                                <p>mounth</p>
-                                <input placeholder="" className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]" />
-                                <p>year</p>
-                                <input placeholder="" className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]" />
-                            </div> */}
+                                <input
+                                    type="number"
+                                    min={1} max={31}
+                                    placeholder="DD"
+                                    value={day}
+                                    onChange={(e) => setDay(e.target.value)}
+                                    className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]"
+                                />
+                                <p>Month</p>
+                                <input
+                                    type="number"
+                                    min={1} max={12}
+                                    placeholder="MM"
+                                    value={month}
+                                    onChange={(e) => setMonth(e.target.value)}
+                                    className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]"
+                                />
+                                <p>Year</p>
+                                <input
+                                    type="number"
+                                    min={1900} max={2025}
+                                    placeholder="YYYY"
+                                    value={year}
+                                    onChange={(e) => setYear(e.target.value)}
+                                    className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]"
+                                />
+                            </div>
                             <p>Country</p>
                             <input type="country"
                                 value={country}
@@ -182,7 +216,7 @@ export default function accountPage() {
                         disabled={loading}
                         className="w-full bg-zinc-800 text-white py-4 text-lg tracking-widest hover:bg-zinc-700 transition-colors disabled:opacity-50"
                     >
-                        {activeTab== "login" ? loading ? 'Завантаження...' : 'Log in' : loading ? 'Завантаження...' : 'Sing up' }
+                        {activeTab == "login" ? loading ? 'Завантаження...' : 'Log in' : loading ? 'Завантаження...' : 'Sing up'}
                     </button>
                 </div>
             </div>
