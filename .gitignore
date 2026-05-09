@@ -19,4 +19,4 @@ appsettings.Development.json
 Thumbs.db
 .DS_Store
 backend/LyneBg/LyneBg.csproj
-/backend
+#/backend

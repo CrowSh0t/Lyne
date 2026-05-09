@@ -26,12 +26,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Отримуємо секцію JWT для налаштування Bearer
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtOptions = jwtSection.Get<JwtOptions>();
 builder.Services.Configure<JwtOptions>(jwtSection);
 
-// --- ДОДАВАННЯ JWT AUTHENTICATION ---
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -83,7 +81,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowAll");
 
-// ВАЖЛИВО: UseAuthentication має бути ПЕРЕД UseAuthorization
 app.UseAuthentication();
 app.UseAuthorization();
 
