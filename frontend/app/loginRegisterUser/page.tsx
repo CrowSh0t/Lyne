@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 
-export default function accountPage() {
+export default function loginRegisterUser() {
     const [activeTab, setActiveTab] = useState("login"); // змінна для перевірки яка із вкладок вибрана
 
-    const [remember, setRemember] = useState(false); 
+    const [remember, setRemember] = useState(false);
 
     const [login, setLogin] = useState('');
     const [email, setEmail] = useState('');
@@ -46,7 +46,12 @@ export default function accountPage() {
                 setError(data.message || 'Помилка входу.');
                 return;
             }
-            router.push('/adminMainPage');
+            // Отримуємо ім'я і зберігаємо
+            const meRes = await fetch('/api/me', { credentials: 'include' });
+            const meData = await meRes.json();
+            localStorage.setItem('username', meData.name || '');
+
+            router.push('/myAccount');
         } catch (err) {
             setError('Не вдалось підключитись до сервера.');
         } finally {
@@ -80,7 +85,11 @@ export default function accountPage() {
                 setError(data.message || 'Помилка реєстрації.');
                 return;
             }
-            router.push('/');
+            const meRes = await fetch('/api/me', { credentials: 'include' });
+            const meData = await meRes.json();
+            localStorage.setItem('username', meData.name || '');
+
+            router.push('/myAccount');
         } catch (err) {
             setError('Не вдалось підключитись до сервера.');
         } finally {
@@ -128,7 +137,7 @@ export default function accountPage() {
                 <div className="mt-4">
                     {activeTab === "login" ? (
                         <div >
-                            
+
                             <p>Email</p>
                             <input type="email"
                                 value={email}
@@ -154,35 +163,42 @@ export default function accountPage() {
                             <input type="name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)} className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]" />
-                            <div>
-                                <p>Birthday day</p>
-                                <input
-                                    type="number"
-                                    min={1} max={31}
-                                    placeholder="DD"
-                                    value={day}
-                                    onChange={(e) => setDay(e.target.value)}
-                                    className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]"
-                                />
-                                <p>Month</p>
-                                <input
-                                    type="number"
-                                    min={1} max={12}
-                                    placeholder="MM"
-                                    value={month}
-                                    onChange={(e) => setMonth(e.target.value)}
-                                    className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]"
-                                />
-                                <p>Year</p>
-                                <input
-                                    type="number"
-                                    min={1900} max={2025}
-                                    placeholder="YYYY"
-                                    value={year}
-                                    onChange={(e) => setYear(e.target.value)}
-                                    className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]"
-                                />
+                            <div className="flex gap-2 items-center">
+                                <div className='className="flex flex-col'>
+                                    <p>Birth day</p>
+                                    <input
+                                        type="number"
+                                        min={1} max={31}
+                                        placeholder="DD"
+                                        value={day}
+                                        onChange={(e) => setDay(e.target.value)}
+                                        className="bg-[#F9F9F9] w-[184px] h-[50px] rounded-[3px] px-2"
+                                    />
+                                </div>
+                                <div className='className="flex flex-col'>
+                                    <p>Mounth</p>
+                                    <input
+                                        type="number"
+                                        min={1} max={12}
+                                        placeholder="MM"
+                                        value={month}
+                                        onChange={(e) => setMonth(e.target.value)}
+                                        className="bg-[#F9F9F9] w-[184px] h-[50px] rounded-[3px] px-2"
+                                    />
+                                </div>
+                                <div className='className="flex flex-col'>
+                                    <p>Year</p>
+                                    <input
+                                        type="number"
+                                        min={1900} max={2025}
+                                        placeholder="YYYY"
+                                        value={year}
+                                        onChange={(e) => setYear(e.target.value)}
+                                        className="bg-[#F9F9F9] w-[184px] h-[50px] rounded-[3px] px-2"
+                                    />
+                                </div>
                             </div>
+
                             <p>Country</p>
                             <input type="country"
                                 value={country}
@@ -195,9 +211,11 @@ export default function accountPage() {
                     )}
 
                     {/* Forgot password */}
-                    <p className="text-sm mb-4 cursor-pointer hover:underline">
-                        Forgot a password?
-                    </p>
+                    {activeTab === "login" && (
+                        <p className="text-sm mb-4 cursor-pointer hover:underline">
+                            Forgot a password?
+                        </p>
+                    )}
 
                     {/* Remember me */}
                     <div className="flex items-center gap-3 mb-6">
@@ -208,7 +226,9 @@ export default function accountPage() {
                             onChange={() => setRemember(!remember)}
                             className="w-5 h-5"
                         />
-                        <label htmlFor="remember" className="text-sm">Remember me</label>
+                        <label htmlFor="remember" className="text-sm">
+                            {activeTab === "login" ? "Remember me" : "Let me know about new in"}
+                        </label>
                     </div>
                     {/* Кнопка */}
                     <button

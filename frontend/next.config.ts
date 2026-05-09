@@ -5,9 +5,10 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
-        destination: 'http://localhost:5097/api/:path*', // порт C# бека
+        source: '/api/auth/:path*',
+        destination: 'http://localhost:5097/api/auth/:path*',
       },
+      // /api/me НЕ додаємо — буде оброблятись своїм route.ts
     ];
   },
 };

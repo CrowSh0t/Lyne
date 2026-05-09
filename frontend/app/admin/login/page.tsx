@@ -34,7 +34,7 @@ export default function LoginPage() {
         setError(data.message || 'Помилка входу.');
         return;
       }
-      router.push('/adminMainPage');
+      router.push('/admin/main');
     } catch (err) {
       setError('Не вдалось підключитись до сервера.');
     } finally {
