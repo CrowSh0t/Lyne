@@ -50,6 +50,10 @@ export default function loginRegisterUser() {
             const meRes = await fetch('/api/me', { credentials: 'include' });
             const meData = await meRes.json();
             localStorage.setItem('username', meData.name || '');
+            localStorage.setItem('email', meData.email || '');
+            localStorage.setItem('country', meData.country || '');
+
+
 
             router.push('/myAccount');
         } catch (err) {
@@ -88,6 +92,8 @@ export default function loginRegisterUser() {
             const meRes = await fetch('/api/me', { credentials: 'include' });
             const meData = await meRes.json();
             localStorage.setItem('username', meData.name || '');
+            localStorage.setItem('email', meData.email || '');
+            localStorage.setItem('country', meData.country || '');
 
             router.push('/myAccount');
         } catch (err) {
