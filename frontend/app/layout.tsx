@@ -13,7 +13,7 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
     <html>
       <body className="min-h-full flex flex-col">
         {!hideHeader && <Header />}
-        <main className={!hideHeader ? 'pt-16' : ''}>
+        <main className="flex-1">
           {children}
         </main>
         {!hideFooter && <Footer />}
