@@ -1,22 +1,21 @@
-'use client';
 import "./globals.css";
-import Header from '@/components/Header'
-import Footer from '@/components/Footer';
-import { usePathname } from 'next/navigation';
+import { Barlow_Condensed } from 'next/font/google';
+import ClientLayout from "./ClientLayout";
 
-export default function RootLayout({ children, }: Readonly<{ children: React.ReactNode; }>) {
-  const pathname = usePathname();
-  const hideHeader = pathname.startsWith('/admin');
-  const hideFooter = pathname.startsWith('/admin');
+const barlowCondensed = Barlow_Condensed({ 
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-barlow',
+  display: 'swap',
+});
 
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html>
+    <html className={barlowCondensed.variable}>
       <body className="min-h-full flex flex-col">
-        {!hideHeader && <Header />}
-        <main className="flex-1">
+        <ClientLayout>
           {children}
-        </main>
-        {!hideFooter && <Footer />}
+        </ClientLayout>
       </body>
     </html>
   );

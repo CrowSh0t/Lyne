@@ -22,8 +22,8 @@ const sliderData = [
 ];
 
 const categories = [
-  { label: 'WOMEN', href: '/women', image: '/images/womanCategory.png' },
-  { label: 'MEN', href: '/men', image: '/images/manCategory.png' },
+  { label: 'WOMEN', href: '/women', image: '/images/womenCategory.png' },
+  { label: 'MEN', href: '/men', image: '/images/menCategory.png' },
   { label: 'KIDS', href: '/kids', image: '/images/kidsCategory.png' },
   { label: 'ACCESSORIES', href: '/accessories', image: '/images/accessoriesCategory.png' },
 ];
@@ -99,7 +99,7 @@ export default function Home() {
               onClick={() => handleClick(i)}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
-              className={`relative w-[35px] h-[35px] rounded-full overflow-hidden flex items-center justify-center font-medium transition-all duration-300 border ${i === current
+              className={`relative w-[35px] h-[35px] rounded-full overflow-hidden flex items-center justify-center transition-all duration-300 border ${i === current
                 ? 'border-[#D9D9D9]/50 bg-[#FFFFFF80]/50 text-[#2C2B2B] scale-[1.4]'
                 : 'border-[#D9D9D9]/50 bg-[#FFFFFF80]/50 text-[#2C2B2B]/70'
                 }`}
@@ -121,24 +121,24 @@ export default function Home() {
           ))}
         </div>
       </div>
+
       {/* cередній cover із категоріями */}
       <div className="flex h-[800px] pt-[38px]">
         {/* Ліва частина — текст по центру */}
         <div className="flex flex-col pl-[180px]">
           <p className="text-xs font-bold tracking-widest mb-2" style={{ color: '#7B8487' }}>SHOP BY CATEGORY</p>
           {categories.map((cat) => (
-          <a
-            key={cat.label}
-            href={cat.href}
-            className={`text-8xl  tracking-tight text-[#7B8487] hover:text-black transition-all duration-200 cursor-pointer ${
-              cat.label === 'KIDS' ? ' w-fit' : ''
-            }`}
-            onMouseEnter={() => setHoveredImage(cat.image)}
-            onMouseLeave={() => setHoveredImage(defaultImage)}
-          >
-            {cat.label}
-          </a>
-        ))}
+            <a
+              key={cat.label}
+              href={cat.href}
+              className={`text-8xl  tracking-tight text-[#7B8487] hover:text-black transition-all duration-200 cursor-pointer ${cat.label === 'KIDS' ? ' w-fit' : ''
+                }`}
+              onMouseEnter={() => setHoveredImage(cat.image)}
+              onMouseLeave={() => setHoveredImage(defaultImage)}
+            >
+              {cat.label}
+            </a>
+          ))}
         </div>
 
         {/* Права частина — картинка */}
@@ -146,7 +146,33 @@ export default function Home() {
           <Image src={hoveredImage} alt="" width={967} height={800} className="w-full h-full object-cover" />
         </div>
       </div>
+
       {/* майбутній cover із брендами */}
+      <div className="flex items-center justify-center px-16">
+        <Image src="/images/DiorBrand.png" alt="" width={199} height={149} className='px-9' />
+        <Image src="/images/PradaBrand.png" alt="" width={220} height={233} className='px-9' />
+        <Image src="/images/HermesBrand.png" alt="" width={190} height={189} className='px-9' />
+        <Image src="/images/GucciBrand.png" alt="" width={228} height={142} className='px-9' />
+        <Image src="/images/CartierBrand.png" alt="" width={209} height={209} className='px-9' />
+      </div>
+
+      {/*  */}
+      <div className='px-9 flex h-[63px]'>
+        <button className="text-left text-[50px] relative w-[440px]
+        after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:bg-[#2C2B2B] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-800 after:origin-left ">
+          New arrivals
+        </button>
+        
+        <button className="text-left text-[28px] flex ml-auto items-center justify-center gap-2">
+          View All
+          <Image src="/images/ViewAllBtn.png" alt="" width={60} height={40} />
+        </button>
+      </div>
+
+      {/* Лінія із колекцією одягу */}
+      <div className='py-9'>
+        <hr />
+      </div>
     </div>
   );
 }
