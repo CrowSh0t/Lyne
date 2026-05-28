@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@layer base {
+  html {
+    font-family: var(--font-barlow), sans-serif;
+  }
+}
+
 /* background */
 .loginBackground {
   background-image: url('/images/loginBackground.png');
@@ -15,7 +21,7 @@
 }
 
 /* mainPage */
-.mainMenu{
+.mainMenu {
   background-image: url('/images/mainMenuBackground.png');
   align-items: center;
   justify-content: center;

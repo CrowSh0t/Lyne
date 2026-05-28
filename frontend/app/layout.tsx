@@ -1,18 +1,21 @@
-'use client';
 import "./globals.css";
-import Header from '@/components/Header'
-import { usePathname } from 'next/navigation';
+import { Barlow_Condensed } from 'next/font/google';
+import ClientLayout from "./ClientLayout";
 
-export default function RootLayout({ children, }: Readonly<{ children: React.ReactNode; }>) {
-  const pathname = usePathname();
-  const hideHeader = pathname === '/loginPage';
+const barlowCondensed = Barlow_Condensed({ 
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-barlow',
+  display: 'swap',
+});
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html>
+    <html className={barlowCondensed.variable}>
       <body className="min-h-full flex flex-col">
-        {!hideHeader && <Header />}
-        <main className={!hideHeader ? 'pt-16' : ''}>
+        <ClientLayout>
           {children}
-        </main>
+        </ClientLayout>
       </body>
     </html>
   );

@@ -4,6 +4,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default function MainPage() {
+    const router = useRouter();
+
+    const handleLogout = () => {
+        localStorage.clear()
+        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+
+        router.push('/admin/login')
+    }
+
     return (
         <div>
             <div className='mainMenu'>
@@ -39,11 +48,11 @@ export default function MainPage() {
                         <Image src="/images/categoryIcon.png" alt="icon" width={30} height={30} />
                         <span>Category</span>
                     </Link>
-                    <Link href="/" className="flex items-center gap-2 mt-auto">
-                        <Image src="/images/logOutIcon.png" alt="icon" width={30} height={30} />
-                        <span>Log out</span>
-                    </Link>
                 </div>
+                <button onClick={handleLogout} className="flex flex-row items-center gap-6">
+                    <span>Log out</span>
+                    <Image src="/images/logoutIcon.png" alt='icon' width={36} height={36} />
+                </button>
             </div>
         </div>
     );
