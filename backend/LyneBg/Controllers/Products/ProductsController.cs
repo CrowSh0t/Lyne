@@ -149,11 +149,6 @@ namespace LyneBg.Controllers.Products
             }
         }
 
-        // ===== МЕТОДИ СТАТИСТИКИ =====
-
-        /// <summary>
-        /// Отримати всі продукти згруповані по назві
-        /// </summary>
         [HttpGet("stats/all-grouped")]
         public async Task<ActionResult> GetAllGrouped()
         {
@@ -185,9 +180,6 @@ namespace LyneBg.Controllers.Products
             }
         }
 
-        /// <summary>
-        /// Отримати інформацію по конкретному продукту за назвою
-        /// </summary>
         [HttpGet("stats/by-name")]
         public async Task<ActionResult> GetProductInfoByName([FromQuery] string name)
         {
@@ -241,9 +233,6 @@ namespace LyneBg.Controllers.Products
             }
         }
 
-        /// <summary>
-        /// Отримати загальну кількість всіх продуктів
-        /// </summary>
         [HttpGet("stats/total-count")]
         public async Task<ActionResult> GetTotalCount()
         {
