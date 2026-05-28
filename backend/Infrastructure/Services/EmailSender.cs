@@ -6,7 +6,6 @@ namespace Infrastructure.Services
     {
         public Task SendAsync(string email, string subject, string message)
         {
-            // Поки що просто імітуємо відправку (виводимо в консоль)
             Console.WriteLine($"--- EMAIL SENT TO {email} ---");
             Console.WriteLine($"Subject: {subject}");
             Console.WriteLine($"Message: {message}");
