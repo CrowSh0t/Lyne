@@ -12,6 +12,7 @@ namespace Domains.Entities
         // Enum властивості
         public Colors Color { get; set; }
         public Sizes Size { get; set; }  // ← Переконайся що це поле є!
+        public decimal Price { get; set; }  // ← Додали ціну
 
         public string? Composition { get; set; }
         public required List<int> CategoriesId { get; set; }

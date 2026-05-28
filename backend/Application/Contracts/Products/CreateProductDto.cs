@@ -12,6 +12,8 @@ namespace Application.Contracts.Products
         public int BrandId { get; set; }
         public string Description { get; set; }
         public string Details { get; set; }
+        public decimal Price { get; set; }  // ← Додали
+
         public int ColorId { get; set; }
         public int? SizeId { get; set; }
         public string? Composition { get; set; }
