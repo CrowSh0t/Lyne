@@ -15,7 +15,7 @@ export default function Header() {
 
         <div className="flex fixed top-0 left-0 w-full flex-1">
           <div className="flex-2 flex items-center justify-center">
-            <h1 className="justify-center text-[#2C2B2B]">LYNE</h1>
+            <Link href={'/'} className="justify-center text-[#2C2B2B] text-2xl">Lyne</Link>
           </div>
           {/* Іконки з правої сторони */}
           <div className="flex items-center justify-end">

@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import ProductCard from '@/components/ProductCard';
 
 // Додаємо поля для h1 та h3 у дані слайдера
 const sliderData = [
@@ -47,26 +48,7 @@ interface BrandDto {
   name: string;
 }
 
-// Картка товару
-function ProductCard({ product, brandName }: { product: ProductDto; brandName: string }) {
-  return (
-    <div className="bg-white rounded-xl p-3 cursor-pointer hover:shadow-md transition-all w-[220px]">
-      <div className="mb-2">
-        <span className="text-xs font-semibold tracking-widest uppercase text-gray-700">
-          {brandName}
-        </span>
-      </div>
-      <div className="bg-gray-100 rounded-lg flex items-center justify-center h-48 mb-3">
-        {product.imageUrl?.[0] ? (
-          <Image src={product.imageUrl[0]} alt={product.name} width={150} height={150} className="object-contain" />
-        ) : (
-          <div className="w-[150px] h-[150px] bg-gray-200 rounded" />
-        )}
-      </div>
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-800">{product.name}</p>
-    </div>
-  );
-}
+
 
 export default function Home() {
   const [current, setCurrent] = useState(0);
@@ -77,6 +59,15 @@ export default function Home() {
   const [hoveredImage, setHoveredImage] = useState(defaultImage);
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [brands, setBrands] = useState<Record<number, string>>({});
+  const uniqueProducts = products.reduce((acc, p) => {
+    const existing = acc.find(x => x.name === p.name);
+    if (!existing) {
+        acc.push(p);
+    } else if (p.id > existing.id) {
+        return acc.map(x => x.name === p.name ? p : x);
+    }
+    return acc;
+}, [] as ProductDto[]);
 
   useEffect(() => {
     // Fetch продуктів і брендів паралельно
@@ -218,14 +209,14 @@ export default function Home() {
 
         <button className="text-left text-[28px] flex ml-auto items-center justify-center gap-2">
           View All
-          <Image src="/images/homePage/ViewAllBtn.png" alt="" width={60} height={40} />
+          <Image src="/images/icons/ViewAllBtn.png" alt="" width={60} height={40} />
         </button>
       </div>
 
       {/* Лінія із колекцією одягу */}
       <div className='py-9'>
         <div className='py-9 flex gap-4'>
-          {products.map(product => (
+          {uniqueProducts.map(product => (
             <Link key={product.id} href={`/product/${product.id}`}>
               <ProductCard
                 key={product.id}
@@ -234,7 +225,6 @@ export default function Home() {
               />
             </Link>
           ))}
-
         </div>
       </div>
     </div>
