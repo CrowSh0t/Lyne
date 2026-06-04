@@ -8,27 +8,13 @@ import Link from 'next/link'
 
 export default function Users() {
     const options = ['Last 7 Days', 'Last 20 Days', 'Last 30 Days', 'Last 90 Days'];
-    const [email, setEmail] = useState('');
     const [open, setOpen] = useState(false);
     const [selected, setSelected] = useState('Last 20 Days');
-
-    useEffect(() => {
-        setEmail(localStorage.getItem('adminEmail') || sessionStorage.getItem('adminEmail') || '');
-    }, [])
 
     return (
         <div className='p-[36px]'>
             {/* Top line */}
             <div className='flex items-center justify-between w-full'>
-                <div className='flex items-center'>
-                    <div className="w-[59px] h-[59px] rounded-full bg-black flex items-center justify-center">
-                        <Image src={"/images/admin/adminIcon.png"} alt='' width={39} height={39} />
-                    </div>
-                    <div className='p-[5px]'>
-                        <h3 className='text-[18px]'>{email}</h3>
-                        <h6 className='text-[16px]'>admin</h6>
-                    </div>
-                </div>
                 <div className='flex items-center gap-3'>
                     <Link href={''}>
                         <Image src={'/images/icons/searchIcon.png'} alt={''} width={28} height={28} />
