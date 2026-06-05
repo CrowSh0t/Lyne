@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface ProductDto {
     id: number;
@@ -113,12 +114,23 @@ export default function Items() {
             return 0;
         });
 
+    const handleDelete = async (id: number) => {
+        const res = await fetch(`/api/products/${id}`, {
+            method: 'DELETE',
+        });
+
+        if (res.ok) {
+            // оновити стан, наприклад прибрати товар зі списку
+            setProducts(prev => prev.filter(p => p.id !== id));
+        }
+    };
     return (
         <div className="px-4 py-4">
-            <div>
-                <div className="bg-black">
-                    
+            <div className="flex  justify-end p-2">
+                <div className="bg-black w-[209px] h-[44px] item-center flex justify-center">
+                    <Link href={"/admin/addNewItem"} className="text-white text-3xl">Add new item +</Link>
                 </div>
+                <Image src={"/images/admin/icons/notificationIcon.png"} alt={""} width={38} height={32}/>
             </div>
             <div>
                 {/* Фільтри */}
@@ -192,7 +204,7 @@ export default function Items() {
                                     <div className="flex gap-3 text-gray-400">
                                         <button className="hover:text-black px-2"><Image src={"/images/admin/icons/editItemIcon.png"} alt={""} width={18} height={18}/>
                                         </button>
-                                        <button className="hover:text-red-500"><Image src={"/images/admin/icons/deleteItemIcon.png"} alt={""} width={18} height={20}/></button>
+                                        <button className="hover:text-red-500" onClick={()=>handleDelete(p.id)}><Image src={"/images/admin/icons/deleteItemIcon.png"} alt={""} width={18} height={20}/></button>
                                     </div>
                                 </td>
                             </tr>
