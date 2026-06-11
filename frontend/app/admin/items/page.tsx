@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useLoading } from "@/app/context/LoadingContext";
 
 interface ProductDto {
     id: number;
@@ -65,8 +66,10 @@ export default function Items() {
     const [sortBy, setSortBy] = useState("newest");
     const [priceFilter, setPriceFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
+    const { setLoading } = useLoading();
 
     useEffect(() => {
+        setLoading(true);
         // Fetch продуктів і брендів паралельно
         Promise.all([
             fetch('/api/products').then(r => r.json()),
@@ -77,7 +80,7 @@ export default function Items() {
             const brandMap: Record<number, string> = {};
             brnds.forEach(b => { brandMap[b.id] = b.name; });
             setBrands(brandMap);
-        });
+        }).finally(() => setLoading(false));
     }, []);
 
 
@@ -187,7 +190,9 @@ export default function Items() {
                             <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
                                 <td className="py-3 flex items-center gap-3">
                                     {p.imageUrl?.[0] && (
+                                        <Link href={`/admin/updateItem/${p.id}`}>
                                         <img src={p.imageUrl[0]} alt={p.name} className="w-10 h-12 object-cover rounded" />
+                                        </Link>
                                     )}
                                     <span>{p.name}</span>
                                 </td>
@@ -202,8 +207,8 @@ export default function Items() {
                                 </td>
                                 <td className="py-3">
                                     <div className="flex gap-3 text-gray-400">
-                                        <button className="hover:text-black px-2"><Image src={"/images/admin/icons/editItemIcon.png"} alt={""} width={18} height={18}/>
-                                        </button>
+                                        <Link className="hover:text-black px-2" href={`/admin/updateItem/${p.id}`}><Image src={"/images/admin/icons/editItemIcon.png"} alt={""} width={18} height={18}/>
+                                        </Link>
                                         <button className="hover:text-red-500" onClick={()=>handleDelete(p.id)}><Image src={"/images/admin/icons/deleteItemIcon.png"} alt={""} width={18} height={20}/></button>
                                     </div>
                                 </td>

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import React from 'react';
 import ProductCard from '@/components/ProductCard';
 import Link from 'next/link';
+import { useLoading } from '@/app/context/LoadingContext';
 
 const DURATION = 3000;
 
@@ -74,7 +75,7 @@ function AccordionItem({ title, children }: { title: string; children: React.Rea
 export default function ItemById({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params);
     const [product, setProduct] = useState<ProductDto | null>(null);
-      const [brands, setBrands] = useState<Record<number, string>>({});
+    const [brands, setBrands] = useState<Record<number, string>>({});
     const [current, setCurrent] = useState(0);
     const [progress, setProgress] = useState(0);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -93,41 +94,36 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
         // додай інші кольори за потребою
     };
     const [matchProducts, setMatchProducts] = useState<ProductDto[]>([]);
+    const { setLoading } = useLoading();
 
     //fetch товарів які мечаться
-useEffect(() => {
-    if (!product?.matchProductsId?.length) return;
-    
-    Promise.all(
-        product.matchProductsId.map((id: number) =>
-            fetch(`/api/products/${id}`).then(r => r.json())
-        )
-    ).then(setMatchProducts);
-}, [product?.matchProductsId]);
+    useEffect(() => {
+        if (!product?.matchProductsId?.length) return;
+        setLoading(true);
+        Promise.all(
+            product.matchProductsId.map((id: number) =>
+                fetch(`/api/products/${id}`).then(r => r.json())
+            )
+        ).then(setMatchProducts).finally(() => setLoading(false));
+    }, [product?.matchProductsId]);
 
     //fetch кольорів та розмірів
     useEffect(() => {
+        setLoading(true);
         const fetchData = async () => {
             const [productRes, statsRes] = await Promise.all([
                 fetch(`/api/products/${id}`).then(r => r.json()),
                 fetch(`/api/Products/stats/all-grouped`).then(r => r.json()),
             ]);
-            console.log('fetching for id:', id);
             const stats = statsRes.find((s: any) => s.name === productRes.name);
-            console.log('setting product:', {
-                ...productRes,
-                availableColors: stats?.availableColors ?? [],
-                availableSizes: stats?.availableSizes ?? [],
-            });
             setProduct({
                 ...productRes,
                 availableColors: stats?.availableColors ?? [],
                 availableSizes: stats?.availableSizes ?? [],
             });
         };
-
-        fetchData();
-    }, [id]); // тільки id, не змінювати
+        fetchData().finally(() => setLoading(false));
+    }, [id]);
 
 
     const images = product?.imageUrl ?? [];
@@ -143,18 +139,16 @@ useEffect(() => {
             setProgress(pct);
 
             if (elapsed >= DURATION) {
-                // БУЛО: startTimer(next) — рекурсія всередині setInterval = проблема
-                // СТАЛО: просто оновлюємо current, useEffect сам запустить startTimer
                 setCurrent(prev => (prev + 1) % images.length);
             }
         }, 16);
     }, [images.length]);
 
     useEffect(() => {
-        if (images.length === 0) return;
-        startTimer(current);
-        return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-    }, [current, images.length]);
+    if (images.length === 0) return;
+    startTimer(current);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+}, [current, images.length]);
 
     const handleClick = (index: number) => {
         setCurrent(index);
@@ -256,7 +250,7 @@ useEffect(() => {
                         <p className='py-12 text-4xl'>{product.details}</p>
                         <AccordionItem title='PRODUCT DETAILS'>
                             <ul className='space-y-1 text-2xl list-disc list-inside'>
-                               <li>{product.details}</li>
+                                <li>{product.details}</li>
                             </ul>
                         </AccordionItem>
                         <AccordionItem title='DILIVERY & RETURNS'>

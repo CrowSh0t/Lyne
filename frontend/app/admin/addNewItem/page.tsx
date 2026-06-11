@@ -13,6 +13,7 @@ interface ProductDto {
     status?: string;
     categoryId?: number;
     code?: string;
+    description?: string;
 }
 interface BrandDto {
     id: number;
@@ -213,24 +214,30 @@ export default function addNewItem() {
                     <div className="grid grid-cols-2 gap-4 py-2">
                         <div>
                             <h2>Brand</h2>
-                            <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none"
-                                value={formData.brandId}
-                                onChange={e => handleChange('brandId', Number(e.target.value))}
-                            >
-                                <option value={0}>—</option>
-                                {brands.map(b => (
-                                    <option key={b.id} value={b.id}>{b.name}</option>
-                                ))}
-                            </select>
+                            <div className="relative flex items-center">
+                                <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none"
+                                    value={formData.brandId}
+                                    onChange={e => handleChange('brandId', Number(e.target.value))}
+                                >
+                                    <option value={0}>—</option>
+                                    {brands.map(b => (
+                                        <option key={b.id} value={b.id}>{b.name}</option>
+                                    ))}
+                                </select>
+                                <span className="absolute right-3 pointer-events-none text-sm">▾</span>
+                            </div>
                         </div>
                         <div>
                             <h2>Color</h2>
-                            <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none"
-                                value={formData.colorId}
-                                onChange={e => handleChange('colorId', Number(e.target.value))}
-                            >
-                                <option value={0}>—</option>
-                            </select>
+                            <div className="relative flex items-center">
+                                <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none"
+                                    value={formData.colorId}
+                                    onChange={e => handleChange('colorId', Number(e.target.value))}
+                                >
+                                    <option value={0}>—</option>
+                                </select>
+                                <span className="absolute right-3 pointer-events-none text-sm">▾</span>
+                            </div>
                         </div>
                         <div>
                             <h2>Quantity</h2>
@@ -239,17 +246,20 @@ export default function addNewItem() {
                         </div>
                         <div>
                             <h2>Size</h2>
-                            <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none"
-                                value={formData.sizeId}
-                                onChange={e => handleChange('sizeId', Number(e.target.value))}
-                            >
-                                <option value={0}>—</option>
-                                <option value={1}>XS</option>
-                                <option value={2}>S</option>
-                                <option value={3}>M</option>
-                                <option value={4}>L</option>
-                                <option value={5}>XL</option>
-                            </select>
+                            <div className="relative flex items-center">
+                                <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none"
+                                    value={formData.sizeId}
+                                    onChange={e => handleChange('sizeId', Number(e.target.value))}
+                                >
+                                    <option value={0}>—</option>
+                                    <option value={1}>XS</option>
+                                    <option value={2}>S</option>
+                                    <option value={3}>M</option>
+                                    <option value={4}>L</option>
+                                    <option value={5}>XL</option>
+                                </select>
+                                <span className="absolute right-3 pointer-events-none text-sm">▾</span>
+                            </div>
                         </div>
                         <div>
                             <h2>Code</h2>
@@ -280,6 +290,7 @@ export default function addNewItem() {
                                 <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none">
                                     <option>1</option>
                                 </select>
+
                             </div>
                         </div>
                     </div>
@@ -368,9 +379,11 @@ export default function addNewItem() {
                             <Image src={"/images/admin/icons/addMoreIcon.png"} alt={""} width={119} height={28} />
                         </button>
                     </div>
-                    <button className="bg-black flex justify-center items-center py-3 text-white w-full text-2xl mt-auto" onClick={handleCreate}>
-                        Add new Item
-                    </button>
+                    <Link href="/admin/items">
+                        <button className="bg-black flex justify-center items-center py-3 text-white w-full text-2xl mt-auto" onClick={handleCreate}>
+                            Add new Item
+                        </button>
+                    </Link>
                 </div>
             </div>
         </div>

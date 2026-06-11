@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
+import { useLoading } from './context/LoadingContext';
 
 // Додаємо поля для h1 та h3 у дані слайдера
 const sliderData = [
@@ -59,28 +60,28 @@ export default function Home() {
   const [hoveredImage, setHoveredImage] = useState(defaultImage);
   const [products, setProducts] = useState<ProductDto[]>([]);
   const [brands, setBrands] = useState<Record<number, string>>({});
+  const { setLoading } = useLoading();
   const uniqueProducts = products.reduce((acc, p) => {
     const existing = acc.find(x => x.name === p.name);
     if (!existing) {
-        acc.push(p);
+      acc.push(p);
     } else if (p.id > existing.id) {
-        return acc.map(x => x.name === p.name ? p : x);
+      return acc.map(x => x.name === p.name ? p : x);
     }
     return acc;
-}, [] as ProductDto[]);
+  }, [] as ProductDto[]);
 
   useEffect(() => {
-    // Fetch продуктів і брендів паралельно
+    setLoading(true);
     Promise.all([
       fetch('/api/products').then(r => r.json()),
       fetch('/api/brands').then(r => r.json()),
     ]).then(([prods, brnds]: [ProductDto[], BrandDto[]]) => {
       setProducts(prods);
-      // Перетворюємо масив брендів у { id: name }
       const brandMap: Record<number, string> = {};
       brnds.forEach(b => { brandMap[b.id] = b.name; });
       setBrands(brandMap);
-    });
+    }).finally(() => setLoading(false));
   }, []);
 
 
