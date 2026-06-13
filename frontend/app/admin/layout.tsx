@@ -1,7 +1,7 @@
 'use client';
 import { usePathname } from 'next/navigation';
 import Menu from '@/components/admin/Menu';
-import AdminIcon from '@/components/admin/AdminIcon';
+import AdminHeader from '@/components/admin/AdminHeader';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -11,7 +11,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex">
       {!isLoginPage && <Menu/>}
       <main className="flex-1">
-        {!isLoginPage && <AdminIcon/>}
+        {!isLoginPage && <AdminHeader/>}
         {children}
       </main>
     </div>

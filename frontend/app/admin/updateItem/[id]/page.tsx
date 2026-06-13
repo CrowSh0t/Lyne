@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import React from "react";
 import { useLoading } from "@/app/context/LoadingContext";
+import { useAdminHeaderStore } from "@/app/store/adminHeader";
 
 interface ProductDto {
     id: number;
@@ -43,6 +44,16 @@ export default function UpdateItem({ params }: { params: Promise<{ id: string }>
             setBrands(brnds);
         }).finally(() => setLoading(false));
     }, [id]);
+    
+    const setRightContent = useAdminHeaderStore(s => s.setRightContent)
+    
+        useEffect(() => {
+            setRightContent(
+                <>
+                </>
+            )
+        }, [])
+        
 
     return (
         <div>

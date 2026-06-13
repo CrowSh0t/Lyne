@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLoading } from "@/app/context/LoadingContext";
+import { useAdminHeaderStore } from "@/app/store/adminHeader";
 
 interface ProductDto {
     id: number;
@@ -127,14 +128,19 @@ export default function Items() {
             setProducts(prev => prev.filter(p => p.id !== id));
         }
     };
+    const setRightContent = useAdminHeaderStore(s => s.setRightContent)
+
+    useEffect(() => {
+        setRightContent(
+            <>
+                <Link href={"/admin/addNewItem"}>
+                    <button className="bg-black text-white px-4 py-2">Add new item +</button>
+                </Link>
+            </>
+        )
+    }, [])
     return (
-        <div className="px-4 py-4">
-            <div className="flex  justify-end p-2">
-                <div className="bg-black w-[209px] h-[44px] item-center flex justify-center">
-                    <Link href={"/admin/addNewItem"} className="text-white text-3xl">Add new item +</Link>
-                </div>
-                <Image src={"/images/admin/icons/notificationIcon.png"} alt={""} width={38} height={32}/>
-            </div>
+        <div className="p-6">
             <div>
                 {/* Фільтри */}
                 <div className="flex gap-8 mb-6">

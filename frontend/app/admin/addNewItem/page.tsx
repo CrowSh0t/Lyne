@@ -2,6 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { useAdminHeaderStore } from "@/app/store/adminHeader";
 
 interface ProductDto {
     id: number;
@@ -37,7 +38,10 @@ interface CreateProductDto {
 export default function addNewItem() {
     const [products, setProducts] = useState<ProductDto[]>([]);
     const [brands, setBrands] = useState<BrandDto[]>([]);
-    const [checked, setChecked] = useState(false)
+    const [isMassMarket, setIsMassMarket] = useState(false)
+    const [isPremium, setIsPremium] = useState(false)
+    const [isBanner, setIsBanner] = useState(false)
+    const [isNewsletter, setIsNewsletter] = useState(false)
     const [formData, setFormData] = useState<CreateProductDto>({
         name: '',
         brandId: 0,
@@ -59,6 +63,7 @@ export default function addNewItem() {
         useRef<HTMLInputElement>(null),
         useRef<HTMLInputElement>(null),
     ]
+    const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
         Promise.all([
@@ -87,35 +92,36 @@ export default function addNewItem() {
     }
 
     const handleCreate = async () => {
-        // Спочатку завантажуємо фото
-        const uploadedUrls: string[] = []
+        // // Спочатку завантажуємо фото
+        // const uploadedUrls: string[] = []
 
-        for (const file of images) {
-            if (!file) continue
-            const fd = new FormData()
-            fd.append('file', file)
+        // for (const file of images) {
+        //     if (!file) continue
+        //     const fd = new FormData()
+        //     fd.append('file', file)
 
-            const res = await fetch('/api/upload', {
-                method: 'POST',
-                body: fd,
-            })
-            if (res.ok) {
-                const { url } = await res.json()
-                uploadedUrls.push(url)
-            }
-        }
+        //     const res = await fetch('/api/upload', {
+        //         method: 'POST',
+        //         body: fd,
+        //     })
+        //     if (res.ok) {
+        //         const { url } = await res.json()
+        //         uploadedUrls.push(url)
+        //     }
+        // }
 
-        // Потім створюємо товар з url фото
-        const res = await fetch('/api/products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...formData, imageUrl: uploadedUrls }),
-        })
+        // // Потім створюємо товар з url фото
+        // const res = await fetch('/api/products', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ ...formData, imageUrl: uploadedUrls }),
+        // })
 
-        if (res.ok) {
-            const newProduct = await res.json()
-            setProducts(prev => [...prev, newProduct])
-        }
+        // if (res.ok) {
+        //     const newProduct = await res.json()
+        //     setProducts(prev => [...prev, newProduct])
+        // }
+        setShowModal(true);
     }
 
     // Компонент однієї кнопки-фото
@@ -153,6 +159,15 @@ export default function addNewItem() {
     const handleChange = (field: keyof CreateProductDto, value: string | number) => {
         setFormData(prev => ({ ...prev, [field]: value }))
     }
+    
+    const setRightContent = useAdminHeaderStore(s => s.setRightContent)
+
+    useEffect(() => {
+        setRightContent(
+            <>
+            </>
+        )
+    }, [])
 
     return (
         <div>
@@ -166,28 +181,22 @@ export default function addNewItem() {
                 {/* div із вибором мас маркет або преміум сегмент */}
                 <div className="pl-36 flex">
                     <label className="text-2xl flex items-center gap-2 cursor-pointer px-6">
-                        <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} className="hidden" />
-                        <div className={`w-5 h-5 rounded-sm flex items-center justify-center transition-colors
-                        ${checked ? 'bg-black/50' : 'bg-gray-200'}`}
-                        >
-                            {checked && (
+                        <input type="checkbox" checked={isMassMarket} onChange={e => setIsMassMarket(e.target.checked)} className="hidden" />
+                        <div className={`w-5 h-5 ... ${isMassMarket ? 'bg-black/50' : 'bg-gray-200'}`}>
+                            {isMassMarket && (
                                 <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
                                     <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                </svg>
-                            )}
+                                </svg>)}
                         </div>
                         Mass Market
                     </label>
                     <label className="text-2xl flex items-center gap-2 cursor-pointer px-6">
-                        <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} className="hidden" />
-                        <div className={`w-5 h-5 rounded-sm flex items-center justify-center transition-colors
-                        ${checked ? 'bg-black/50' : 'bg-gray-200'}`}
-                        >
-                            {checked && (
+                        <input type="checkbox" checked={isPremium} onChange={e => setIsPremium(e.target.checked)} className="hidden" />
+                        <div className={`w-5 h-5 ... ${isPremium ? 'bg-black/50' : 'bg-gray-200'}`}>
+                            {isPremium && (
                                 <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
                                     <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                </svg>
-                            )}
+                                </svg>)}
                         </div>
                         Premium segment
                     </label>
@@ -301,14 +310,14 @@ export default function addNewItem() {
                             <label className="text-2xl flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="checkbox"
-                                    checked={checked}
-                                    onChange={(e) => setChecked(e.target.checked)}
+                                    checked={isNewsletter}
+                                    onChange={(e) => setIsNewsletter(e.target.checked)}
                                     className="hidden"
                                 />
                                 <div className={`w-5 h-5 rounded-sm flex items-center justify-center transition-colors
-                        ${checked ? 'bg-black/50' : 'bg-gray-200'}`}
+                        ${isNewsletter ? 'bg-black/50' : 'bg-gray-200'}`}
                                 >
-                                    {checked && (
+                                    {isNewsletter && (
                                         <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
                                             <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                         </svg>
@@ -319,14 +328,14 @@ export default function addNewItem() {
                             <label className="text-2xl flex items-center gap-2 cursor-pointer pl-6">
                                 <input
                                     type="checkbox"
-                                    checked={checked}
-                                    onChange={(e) => setChecked(e.target.checked)}
+                                    checked={isBanner}
+                                    onChange={(e) => setIsBanner(e.target.checked)}
                                     className="hidden"
                                 />
                                 <div className={`w-5 h-5 rounded-sm flex items-center justify-center transition-colors
-                        ${checked ? 'bg-black/50' : 'bg-gray-200'}`}
+                        ${isBanner ? 'bg-black/50' : 'bg-gray-200'}`}
                                 >
-                                    {checked && (
+                                    {isBanner && (
                                         <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
                                             <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                         </svg>
@@ -379,11 +388,32 @@ export default function addNewItem() {
                             <Image src={"/images/admin/icons/addMoreIcon.png"} alt={""} width={119} height={28} />
                         </button>
                     </div>
-                    <Link href="/admin/items">
-                        <button className="bg-black flex justify-center items-center py-3 text-white w-full text-2xl mt-auto" onClick={handleCreate}>
-                            Add new Item
-                        </button>
-                    </Link>
+                    <button className="bg-black flex justify-center items-center py-3 text-white w-full text-2xl mt-auto" onClick={() => handleCreate()}>
+                        Add new Item
+                    </button>
+                    {showModal && (
+                        <div className="fixed inset-0 bg-white/70 flex items-center justify-center z-50">
+                            <div className="bg-[#1A1D23] flex items-center justify-center w-[775px] h-[335px] relative">
+
+                                <button className="absolute top-3 right-3" onClick={() => setShowModal(false)}>
+                                    <img src={"/images/admin/icons/closeIcon.png"} />
+                                </button>
+
+                                <img src={"/images/admin/ImageForModal.png"} />
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-lg text-white">The item is successfully added to your website</p>
+                                    <Link href={"/admin/items"}>
+                                        <button
+                                            onClick={() => setShowModal(false)}
+                                            className="px-4 py-2 bg-white"
+                                        >
+                                            View on the website
+                                        </button>
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
