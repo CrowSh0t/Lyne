@@ -158,12 +158,12 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
     if (!product) return <div>Завантаження...</div>;
 
     return (
-        <div className='flex flex-col pt-18 '>
+        <div className='flex flex-col pt-18'>
             <div
                 className="relative w-full h-[800px] pt-[80px] bg-cover bg-center transition-all duration-700 flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg, #FECBBB, #BAA3A9, #95AEBC)' }}
             >
-                <Image src={images[current] || '/placeholder.png'} alt='' width={800} height={0} className='object-contain h-full w-auto p-6'></Image>
+                <img src={images[current] || '/placeholder.png'} alt='' width={800} height={0} className='object-contain h-full w-auto p-6'/>
                 {/* Кнопки */}
                 <div className="absolute bottom-8 right-10 flex gap-3 items-center">
                     {images.map((_, i) => (
@@ -187,7 +187,7 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                 </div>
             </div>
             {/* Характеристика товару */}
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-2 pl-12'>
                 {/* з ліва */}
                 <div>
                     <p className='text-2xl'>here will be brand name</p>
@@ -220,7 +220,7 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                 <div className='flex flex-col grad-2 ml-auto'>
                     <div className='p-2 flex flex-row grad-2 p-4'>
                         <button className='bg-black text-white w-[599px] h-[72px] flex flex-row items-center justify-center gap-3 text-2xl p-4'>
-                            <Image src={'/images/icons/whiteBagIcon.png'} alt={''} width={33} height={29}></Image>
+                            <img src={'/images/icons/whiteBagIcon.png'} alt={''} width={33} height={29}/>
                             ADD TO BAG
                         </button>
                         <div className="relative w-[57px] h-[72px] rounded-lg p-4" style={{ background: 'linear-gradient(135deg, #FECBBB, #BAA3A9, #95AEBC)' }}>
@@ -243,7 +243,7 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                         </div>
                     </div>
                     <button className='w-[663px] h-[75px] border-2 flex items-center justify-center'>
-                        <Image src={'/images/icons/applePayIcon.png'} alt={''} width={90} height={37} />
+                        <img src={'/images/icons/applePayIcon.png'} alt={''} width={90} height={37} />
                     </button>
                     {/* Внизу з права */}
                     <div>

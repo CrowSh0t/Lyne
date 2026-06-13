@@ -9,7 +9,7 @@ export default function MainPage() {
         useEffect(() => {
             setRightContent(
                 <>
-                    <img src={"/images/admin/icons/searchIcon.png"}></img>
+                    <img src={"/images/admin/icons/searchIcon.png"}/>
                 </>
             )
         }, [])

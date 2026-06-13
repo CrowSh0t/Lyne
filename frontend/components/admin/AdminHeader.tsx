@@ -18,7 +18,7 @@ export default function AdminHeader() {
             {/* Ліва частина екрану */}
             <div className='flex items-center grab-3'>
                 <div className="w-[59px] h-[59px] rounded-full bg-black flex items-center justify-center">
-                    <Image src={"/images/admin/AdminIcon.png"} alt='' width={39} height={39} />
+                    <img src={"/images/admin/AdminIcon.png"} alt='' width={39} height={39} />
                 </div>
                 <div className='p-[5px]'>
                     <h3 className='text-[18px]'>{email}</h3>
@@ -28,7 +28,7 @@ export default function AdminHeader() {
             {/* Права чатсина */}
             <div className="flex items-center gap-4">
                 {rightContent}
-                <img src={"/images/admin/icons/notificationIcon.png"}></img>
+                <img src={"/images/admin/icons/notificationIcon.png"}/>
             </div>
         </div>
     )

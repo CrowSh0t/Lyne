@@ -1,17 +1,28 @@
 'use client';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
+const MENU_ITEMS = [
+    { href: '/admin/main', icon: '/images/icons/mainIcon.png', label: 'Main', w: 33, h: 33 },
+    { href: '/admin/selling', icon: '/images/icons/sellingIcon.png', label: 'Selling', w: 29, h: 29 },
+    { href: '/admin/orders', icon: '/images/icons/orderIcon.png', label: 'Orders', w: 36, h: 36 },
+    { href: '/admin/users', icon: '/images/icons/usersIcon.png', label: 'Users', w: 28, h: 28 },
+    { href: '/admin/items', icon: '/images/icons/ItemsIcon.png', label: 'Items', w: 27, h: 27 },
+    { href: '/admin/filters', icon: '/images/icons/filtersIcon.png', label: 'Filters', w: 24, h: 24 },
+    { href: '/admin/category', icon: '/images/icons/categoryIcon.png', label: 'Category', w: 30, h: 30 },
+]
 
 export default function Menu() {
     const router = useRouter();
+    const pathname = usePathname();
+
     const handleLogout = () => {
         localStorage.clear()
         document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-
         router.push('/admin/login')
     }
+
     return (
         <div>
             <div className='flex grab-2 flex-row justify-top items-top'>
@@ -20,35 +31,20 @@ export default function Menu() {
                     <h3>Concept store</h3>
 
                     <div className="flex flex-col flex-1 w-full pl-5">
-                        <Link href="/admin/main" className="flex items-center gap-4 px-6 py-4 cursor-pointer text-base text-[#1a1a1a] no-underline w-full last:border-b-0 hover:scale-[0.85] transition-transform duration-500 ease-in-out">
-                            <Image src="/images/icons/mainIcon.png" alt="icon" width={33} height={33} />
-                            <span>Main</span>
-                        </Link>
-                        <Link href="/admin/selling" className="flex items-center gap-4 px-6 py-4 cursor-pointer text-base text-[#1a1a1a] no-underline w-full last:border-b-0 hover:scale-[0.85] transition-transform duration-500 ease-in-out">
-                            <Image src="/images/icons/sellingIcon.png" alt="icon" width={29} height={29} />
-                            <span>Selling</span>
-                        </Link>
-                        <Link href="/admin/orders" className="flex items-center gap-4 px-6 py-4 cursor-pointer text-base text-[#1a1a1a] no-underline w-full last:border-b-0 hover:scale-[0.85] transition-transform duration-500 ease-in-out">
-                            <Image src="/images/icons/orderIcon.png" alt="icon" width={36} height={36} />
-                            <span>Orders</span>
-                        </Link>
-                        <Link href="/admin/users" className="flex items-center gap-4 px-6 py-4 cursor-pointer text-base text-[#1a1a1a] no-underline w-full last:border-b-0 hover:scale-[0.85] transition-transform duration-500 ease-in-out">
-                            <Image src="/images/icons/usersIcon.png" alt="icon" width={28} height={28} />
-                            <span>Users</span>
-                        </Link>
-                        <Link href="/admin/items" className="flex items-center gap-4 px-6 py-4 cursor-pointer text-base text-[#1a1a1a] no-underline w-full last:border-b-0 hover:scale-[0.85] transition-transform duration-500 ease-in-out">
-                            <Image src="/images/icons/ItemsIcon.png" alt="icon" width={27} height={27} />
-                            <span>Items</span>
-                        </Link>
-                        <Link href="/admin/filters" className="flex items-center gap-4 px-6 py-4 cursor-pointer text-base text-[#1a1a1a] no-underline w-full last:border-b-0 hover:scale-[0.85] transition-transform duration-500 ease-in-out">
-                            <Image src="/images/icons/filtersIcon.png" alt="icon" width={24} height={24} />
-                            <span>Filters</span>
-                        </Link>
-                        <Link href="/admin/category" className="flex items-center gap-4 px-6 py-4 cursor-pointer text-base text-[#1a1a1a] no-underline w-full last:border-b-0 hover:scale-[0.85] transition-transform duration-500 ease-in-out">
-                            <Image src="/images/icons/categoryIcon.png" alt="icon" width={30} height={30} />
-                            <span>Category</span>
-                        </Link>
+                        {MENU_ITEMS.map(({ href, icon, label, w, h }) => (
+                            <Link
+                                key={href}
+                                href={href}
+                                className="flex items-center px-6 py-4 cursor-pointer text-base text-[#1a1a1a] no-underline hover:scale-[0.85] transition-transform duration-500 ease-in-out"
+                            >
+                                <div className={`flex items-center gap-4 ${pathname === href ? 'border-b-2 border-black pb-1 pr-16' : ''}`}>
+                                    <Image src={icon} alt="icon" width={w} height={h} />
+                                    <span>{label}</span>
+                                </div>
+                            </Link>
+                        ))}
                     </div>
+
                     <button onClick={handleLogout} className="flex flex-row items-center gap-6">
                         <span>Log out</span>
                         <Image src="/images/icons/logoutIcon.png" alt='icon' width={36} height={36} />

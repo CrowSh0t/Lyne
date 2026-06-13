@@ -4,22 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLoading } from "@/app/context/LoadingContext";
 import { useAdminHeaderStore } from "@/app/store/adminHeader";
-
-interface ProductDto {
-    id: number;
-    name: string;
-    brandId: number;
-    imageUrl?: string[];
-    price: number;
-    quantity?: number;
-    status?: string;
-    categoryId?: number;
-    code?: string;
-}
-interface BrandDto {
-    id: number;
-    name: string;
-}
+import { getBrands, getProducts } from "@/app/api/fetchApi/adminApi";
+import { ProductDto } from "@/app/types/dto";
 
 const DropdownFilter = ({
     label,
@@ -41,7 +27,7 @@ const DropdownFilter = ({
                 onClick={() => setOpen(!open)}
                 className="flex items-center gap-2 border-b border-black pb-1 text-xl font-large min-w-[140px] justify-between"
             >
-                {current} <Image src={""} alt={""} />
+                {current} <img src={""} alt={""} />
             </button>
             {open && (
                 <div className="absolute top-full mt-1 bg-white border border-gray-200 shadow-md z-10 min-w-[160px]">
@@ -71,31 +57,14 @@ export default function Items() {
 
     useEffect(() => {
         setLoading(true);
-        // Fetch продуктів і брендів паралельно
-        Promise.all([
-            fetch('/api/products').then(r => r.json()),
-            fetch('/api/brands').then(r => r.json()),
-        ]).then(([prods, brnds]: [ProductDto[], BrandDto[]]) => {
-            setProducts(prods);
-            // Перетворюємо масив брендів у { id: name }
-            const brandMap: Record<number, string> = {};
-            brnds.forEach(b => { brandMap[b.id] = b.name; });
-            setBrands(brandMap);
-        }).finally(() => setLoading(false));
-    }, []);
-
-
-
-    useEffect(() => {
-        Promise.all([
-            fetch('/api/products').then(r => r.json()),
-            fetch('/api/brands').then(r => r.json()),
-        ]).then(([prods, brnds]: [ProductDto[], BrandDto[]]) => {
-            setProducts(prods);
-            const brandMap: Record<number, string> = {};
-            brnds.forEach(b => { brandMap[b.id] = b.name; });
-            setBrands(brandMap);
-        });
+        Promise.all([getProducts(), getBrands()])
+            .then(([prods, brnds]) => {
+                setProducts(prods);
+                const brandMap: Record<number, string> = {};
+                brnds.forEach(b => { brandMap[b.id] = b.name; });
+                setBrands(brandMap);
+            })
+            .finally(() => setLoading(false));
     }, []);
 
     const filtered = [...products]
@@ -197,7 +166,7 @@ export default function Items() {
                                 <td className="py-3 flex items-center gap-3">
                                     {p.imageUrl?.[0] && (
                                         <Link href={`/admin/updateItem/${p.id}`}>
-                                        <img src={p.imageUrl[0]} alt={p.name} className="w-10 h-12 object-cover rounded" />
+                                            <img src={p.imageUrl[0]} alt={p.name} className="w-10 h-12 object-cover rounded" />
                                         </Link>
                                     )}
                                     <span>{p.name}</span>
@@ -213,9 +182,9 @@ export default function Items() {
                                 </td>
                                 <td className="py-3">
                                     <div className="flex gap-3 text-gray-400">
-                                        <Link className="hover:text-black px-2" href={`/admin/updateItem/${p.id}`}><Image src={"/images/admin/icons/editItemIcon.png"} alt={""} width={18} height={18}/>
+                                        <Link className="hover:text-black px-2" href={`/admin/updateItem/${p.id}`}><img src={"/images/admin/icons/editIcon.png"} alt={""} width={18} height={18} />
                                         </Link>
-                                        <button className="hover:text-red-500" onClick={()=>handleDelete(p.id)}><Image src={"/images/admin/icons/deleteItemIcon.png"} alt={""} width={18} height={20}/></button>
+                                        <button className="hover:text-red-500" onClick={() => handleDelete(p.id)}><img src={"/images/admin/icons/deleteIcon.png"} alt={""} width={18} height={20} /></button>
                                     </div>
                                 </td>
                             </tr>

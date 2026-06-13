@@ -188,17 +188,17 @@ export default function Home() {
 
         {/* Права частина — картинка */}
         <div className="ml-auto">
-          <Image src={hoveredImage} alt="" width={967} height={800} className="w-full h-full object-cover" />
+          <img src={hoveredImage} alt="" width={967} height={800} className="w-full h-full object-cover" />
         </div>
       </div>
 
       {/* майбутній cover із брендами */}
       <div className="flex items-center justify-center px-16">
-        <Image src="/images/homePage/DiorBrand.png" alt="" width={199} height={149} className='px-9' />
-        <Image src="/images/homePage/PradaBrand.png" alt="" width={220} height={233} className='px-9' />
-        <Image src="/images/homePage/HermesBrand.png" alt="" width={190} height={189} className='px-9' />
-        <Image src="/images/homePage/GucciBrand.png" alt="" width={228} height={142} className='px-9' />
-        <Image src="/images/homePage/CartierBrand.png" alt="" width={209} height={209} className='px-9' />
+        <img src="/images/homePage/DiorBrand.png" alt="" width={199} height={149} className='px-9' />
+        <img src="/images/homePage/PradaBrand.png" alt="" width={220} height={233} className='px-9' />
+        <img src="/images/homePage/HermesBrand.png" alt="" width={190} height={189} className='px-9' />
+        <img src="/images/homePage/GucciBrand.png" alt="" width={228} height={142} className='px-9' />
+        <img src="/images/homePage/CartierBrand.png" alt="" width={209} height={209} className='px-9' />
       </div>
 
       {/*  */}
@@ -210,7 +210,7 @@ export default function Home() {
 
         <button className="text-left text-[28px] flex ml-auto items-center justify-center gap-2">
           View All
-          <Image src="/images/icons/ViewAllBtn.png" alt="" width={60} height={40} />
+          <img src="/images/icons/ViewAllBtn.png" alt="" width={60} height={40} />
         </button>
       </div>
 

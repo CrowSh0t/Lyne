@@ -20,7 +20,7 @@ export default function MainPage() {
         <div className='pt-[80px]'>
             <div className='p-6'>
                 <h1 className='text-3xl pb-12'>Your stats</h1>
-                <Image src={'/images/admin/MounthStats.png'} alt='stats' width={916} height={206}/>
+                <img src={'/images/admin/MounthStats.png'} alt='stats' width={916} height={206}/>
             </div>
         </div>
     );

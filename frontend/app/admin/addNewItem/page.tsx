@@ -144,7 +144,7 @@ export default function addNewItem() {
                 }
             >
                 {!previews[index] && (
-                    <Image
+                    <img
                         src={"/images/admin/icons/templateForAddPhotoIcon.png"}
                         alt=""
                         width={size === 'large' ? 248 : 113}
@@ -159,7 +159,7 @@ export default function addNewItem() {
     const handleChange = (field: keyof CreateProductDto, value: string | number) => {
         setFormData(prev => ({ ...prev, [field]: value }))
     }
-    
+
     const setRightContent = useAdminHeaderStore(s => s.setRightContent)
 
     useEffect(() => {
@@ -173,7 +173,7 @@ export default function addNewItem() {
         <div>
             <div className="p-4">
                 <Link href={'/admin/main'}>
-                    <Image src={'/images/icons/viewAllBtn.png'} alt={''} className='scale-x-[-1] pt-[36px]' width={47} height={34} />
+                    <img src={'/images/icons/viewAllBtn.png'} alt={''} className='scale-x-[-1] pt-[36px]' width={47} height={34} />
                 </Link>
             </div>
             <div className="p-4 flex flex-row">
@@ -181,22 +181,38 @@ export default function addNewItem() {
                 {/* div із вибором мас маркет або преміум сегмент */}
                 <div className="pl-36 flex">
                     <label className="text-2xl flex items-center gap-2 cursor-pointer px-6">
-                        <input type="checkbox" checked={isMassMarket} onChange={e => setIsMassMarket(e.target.checked)} className="hidden" />
-                        <div className={`w-5 h-5 ... ${isMassMarket ? 'bg-black/50' : 'bg-gray-200'}`}>
+                        <input
+                            type="checkbox"
+                            checked={isMassMarket}
+                            onChange={(e) => setIsMassMarket(e.target.checked)}
+                            className="hidden"
+                        />
+                        <div className={`w-5 h-5 rounded-sm flex items-center justify-center transition-colors
+                        ${isMassMarket ? 'bg-black/50' : 'bg-gray-200'}`}
+                        >
                             {isMassMarket && (
                                 <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
                                     <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                </svg>)}
+                                </svg>
+                            )}
                         </div>
                         Mass Market
                     </label>
                     <label className="text-2xl flex items-center gap-2 cursor-pointer px-6">
-                        <input type="checkbox" checked={isPremium} onChange={e => setIsPremium(e.target.checked)} className="hidden" />
-                        <div className={`w-5 h-5 ... ${isPremium ? 'bg-black/50' : 'bg-gray-200'}`}>
+                        <input
+                            type="checkbox"
+                            checked={isPremium}
+                            onChange={(e) => setIsPremium(e.target.checked)}
+                            className="hidden"
+                        />
+                        <div className={`w-5 h-5 rounded-sm flex items-center justify-center transition-colors
+                        ${isPremium ? 'bg-black/50' : 'bg-gray-200'}`}
+                        >
                             {isPremium && (
                                 <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
                                     <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                </svg>)}
+                                </svg>
+                            )}
                         </div>
                         Premium segment
                     </label>
@@ -357,17 +373,17 @@ export default function addNewItem() {
                     <div className="py-2">
                         <h2 className="text-xl">Add photos & video</h2>
                         {/* <button className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-[260px] items-center flex justify-center">
-                            <Image src={"/images/admin/icons/templateForAddPhotoIcon.png"} alt={""} width={248} height={248} />
+                            <img src={"/images/admin/icons/templateForAddPhotoIcon.png"} alt={""} width={248} height={248} />
                         </button>
                         <div className="flex flex-row gap-3 pt-6">
                             <button className="w-1/3 bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-[130px] items-center flex justify-center">
-                                <Image src={"/images/admin/icons/templateForAddPhotoIcon.png"} alt={""} width={113} height={112} />
+                                <img src={"/images/admin/icons/templateForAddPhotoIcon.png"} alt={""} width={113} height={112} />
                             </button>
                             <button className="w-1/3 bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-[130px] items-center flex justify-center p-2">
-                                <Image src={"/images/admin/icons/templateForAddPhotoIcon.png"} alt={""} width={113} height={112} />
+                                <img src={"/images/admin/icons/templateForAddPhotoIcon.png"} alt={""} width={113} height={112} />
                             </button>
                             <button className="w-1/3 bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-[130px] items-center flex justify-center p-2">
-                                <Image src={"/images/admin/icons/templateForAddPhotoIcon.png"} alt={""} width={113} height={112} />
+                                <img src={"/images/admin/icons/templateForAddPhotoIcon.png"} alt={""} width={113} height={112} />
                             </button>
                         </div> */}
                         <PhotoButton index={0} size="large" />
@@ -381,11 +397,11 @@ export default function addNewItem() {
                     </div>
                     <div className="flex flex-row gap-2 p-4">
                         <button className="flex flex-row">
-                            <Image src={"/images/admin/icons/uploadFromIcon.png"} alt={""} width={24} height={24} />
+                            <img src={"/images/admin/icons/uploadFromIcon.png"} alt={""} width={24} height={24} />
                             <label>Upload from your computer</label>
                         </button>
                         <button className="flex ml-auto">
-                            <Image src={"/images/admin/icons/addMoreIcon.png"} alt={""} width={119} height={28} />
+                            <img src={"/images/admin/icons/addMoreIcon.png"} alt={""} width={119} height={28} />
                         </button>
                     </div>
                     <button className="bg-black flex justify-center items-center py-3 text-white w-full text-2xl mt-auto" onClick={() => handleCreate()}>

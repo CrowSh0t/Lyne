@@ -5,28 +5,7 @@ import { useEffect, useState } from "react";
 import React from "react";
 import { useLoading } from "@/app/context/LoadingContext";
 import { useAdminHeaderStore } from "@/app/store/adminHeader";
-
-interface ProductDto {
-    id: number;
-    name: string;
-    brandId: number;
-    imageUrl?: string[];
-    price: number;
-    quantity?: number;
-    status?: string;
-    categoriesId?: number[];
-    code?: string;
-    description?: string;
-    details?: string;
-    composition?: string;
-    sizeId?: string | null;
-    colorId?: number;
-}
-interface BrandDto {
-    id: number;
-    name: string;
-}
-
+import { BrandDto, ProductDto } from "@/app/types/dto";
 
 export default function UpdateItem({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params);
@@ -58,8 +37,8 @@ export default function UpdateItem({ params }: { params: Promise<{ id: string }>
     return (
         <div>
             <div className="p-4">
-                <Link href={'/admin/main'}>
-                    <Image src={'/images/icons/viewAllBtn.png'} alt={''} className='scale-x-[-1] pt-[36px]' width={47} height={34} />
+                <Link href={'/admin/items'}>
+                    <img src={'/images/icons/viewAllBtn.png'} alt={''} className='scale-x-[-1] pt-[36px]' width={47} height={34} />
                 </Link>
             </div>
             <div className="flex flex-row grad-2">

@@ -17,19 +17,19 @@ export default function Users() {
             <div className='flex items-center justify-between w-full'>
                 <div className='flex items-center gap-3'>
                     <Link href={''}>
-                        <Image src={'/images/icons/searchIcon.png'} alt={''} width={28} height={28} />
+                        <img src={'/images/icons/searchIcon.png'} alt={''} width={28} height={28} />
                     </Link>
                     <Link href={''}>
-                        <Image src={'/images/icons/updateIcon.png'} alt={''} width={32} height={32} />
+                        <img src={'/images/icons/updateIcon.png'} alt={''} width={32} height={32} />
                     </Link>
                 </div>
             </div>
 
             <Link href={'/admin/main'}>
-                <Image src={'/images/icons/viewAllBtn.png'} alt={''} className='scale-x-[-1] pt-[36px]' width={47} height={34} />
+                <img src={'/images/icons/viewAllBtn.png'} alt={''} className='scale-x-[-1] pt-[36px]' width={47} height={34} />
             </Link>
             {/* Тимчасова якщо не буде справжніх даних */}
-            <Image src={'/images/admin/userStatistic.png'} alt={''} className='py-[16px] px-[8px]' width={1243} height={200} />
+            <img src={'/images/admin/userStatistic.png'} alt={''} className='py-[16px] px-[8px]' width={1243} height={200} />
 
             {/* User managment */}
             <div className='bg-[##FFFFFF] shadow-[0px_0px_15px_rgba(0,0,0,0.3)] rounded-tl-[5px] rounded-tr-[5px]'>
@@ -43,7 +43,7 @@ export default function Users() {
                     <div className='flex h-[50px]'>
                         <input className='w-[816px] bg-[#F6F6F6]  pr-[8px]'></input>
                         <button className='bg-[#F6F6F6] w-[123px] flex items-center mx-4 flex px-2'>
-                            <Image src={'/images/icons/filtersIcon.png'} alt={''} width={20} height={20} />
+                            <img src={'/images/icons/filtersIcon.png'} alt={''} width={20} height={20} />
                             <p className='px-3'>Filters</p>
                         </button>
                         <div className="relative bg-[#F6F6F6] w-[123px] flex items-center mx-4 flex px-2 '">

@@ -54,7 +54,7 @@ export default function MyAccountPage() {
                                 }`}
                         >
                             <span>{label}</span>
-                            <Image src={icon} alt={label} width={20} height={20} />
+                            <img src={icon} alt={label} width={20} height={20} />
                         </button>
                     ))}
 
@@ -66,7 +66,7 @@ export default function MyAccountPage() {
                         className="flex flex-row items-center gap-2 pb-2 border-b-2 border-transparent"
                     >
                         <span>Log out</span>
-                        <Image src="/images/icons/logoutIcon.png" alt="Log out" width={20} height={20} />
+                        <img src="/images/icons/logoutIcon.png" alt="Log out" width={20} height={20} />
                     </button>
                 </div>
                 {/* Контент під табами */}
