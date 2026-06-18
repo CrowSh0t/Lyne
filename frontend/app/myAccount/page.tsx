@@ -13,8 +13,7 @@ export default function MyAccountPage() {
     useEffect(() => {
         setName(localStorage.getItem('username') || '');
         setEmail(localStorage.getItem('email') || '');
-
-
+        setCountry(localStorage.getItem('country') || '');
     }, []);
 
     type Tab = 'account' | 'orders' | 'contact'

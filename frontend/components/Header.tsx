@@ -1,7 +1,30 @@
+'use client'
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 export default function Header() {
+  const [isLogined, setIsLogined] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsLogined(!!localStorage.getItem('username'));
+    }
+    checkAuth();
+    setIsMounted(true);
+    window.addEventListener('authChange', checkAuth);
+    return () => {
+      window.removeEventListener('authChange', checkAuth);
+    };
+  }, []);
+  
+  if (!isMounted) {
+    return <div className="p-4" style={{ width: 29, height: 29 }} />;
+  }
+
+  const accountLink = isLogined ? "/myAccount" : "/loginRegisterUser";
+
   return (
     <div className="fixed top-0 left-0 w-full bg-[#F9F9F9] z-50">
       <div className="flex items-center justify-between px-6 h-16">
@@ -22,7 +45,7 @@ export default function Header() {
             <Link href="/mainPage" className="p-4">
               <img src="/images/icons/searchIcon.png" alt="icon" width={33} height={33} />
             </Link>
-            <Link href="/loginRegisterUser" className="p-4">
+            <Link href={accountLink} className="p-4">
               <img src="/images/icons/usersIcon.png" alt="icon" width={29} height={29} />
             </Link>
             <Link href="/favoritePage" className="p-4">

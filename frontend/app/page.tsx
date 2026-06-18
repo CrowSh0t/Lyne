@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { useLoading } from './context/LoadingContext';
+import { ProductDto,BrandDto } from './types/dto';
 
 // Додаємо поля для h1 та h3 у дані слайдера
 const sliderData = [
@@ -34,22 +35,6 @@ const categories = [
 const defaultImage = '/images/homePage/baseImageForGenderCategory.png';
 
 const DURATION = 3000;
-
-// Типи
-interface ProductDto {
-  id: number;
-  name: string;
-  brandId: number;
-  imageUrl?: string[];
-  price: number;
-}
-
-interface BrandDto {
-  id: number;
-  name: string;
-}
-
-
 
 export default function Home() {
   const [current, setCurrent] = useState(0);

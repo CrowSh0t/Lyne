@@ -1,13 +1,5 @@
+import { ProductDto } from "@/app/types/dto";
 import Image from "next/image";
-
-// Типи
-interface ProductDto {
-  id: number;
-  name: string;
-  brandId: number;
-  imageUrl?: string[];
-  price: number;
-}
 
 // Картка товару
 export default function ProductCard({ product, brandName }: { product: ProductDto; brandName: string }) {

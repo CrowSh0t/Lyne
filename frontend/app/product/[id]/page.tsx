@@ -5,21 +5,9 @@ import React from 'react';
 import ProductCard from '@/components/ProductCard';
 import Link from 'next/link';
 import { useLoading } from '@/app/context/LoadingContext';
+import { ProductDto } from '@/app/types/dto';
 
 const DURATION = 3000;
-
-interface ProductDto {
-    id: number;
-    name: string;
-    brandId: number;
-    imageUrl?: string[];
-    colorId: number;
-    price: number;
-    availableColors: string[];
-    availableSizes: string[];
-    details: string[];
-    matchProductsId: number[];
-}
 
 // Для Select size
 function SizeSelector({ sizes, selected, onSelect }: {
@@ -72,9 +60,35 @@ function AccordionItem({ title, children }: { title: string; children: React.Rea
     );
 }
 
+// 1. Окремий тип для статистики (можна винести в types/dto.ts поруч з ProductDto)
+interface ProductStats {
+    availableColors: string[];
+    availableSizes: string[];
+}
+
 export default function ItemById({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params);
     const [product, setProduct] = useState<ProductDto | null>(null);
+    const [stats, setStats] = useState<ProductStats>({ availableColors: [], availableSizes: [] });
+    // ...решта стейтів без змін
+
+    //fetch кольорів та розмірів
+    useEffect(() => {
+        setLoading(true);
+        const fetchData = async () => {
+            const [productRes, statsRes] = await Promise.all([
+                fetch(`/api/products/${id}`).then(r => r.json()),
+                fetch(`/api/Products/stats/all-grouped`).then(r => r.json()),
+            ]);
+            const matchedStats = statsRes.find((s: any) => s.name === productRes.name);
+            setProduct(productRes);
+            setStats({
+                availableColors: matchedStats?.availableColors ?? [],
+                availableSizes: matchedStats?.availableSizes ?? [],
+            });
+        };
+        fetchData().finally(() => setLoading(false));
+    }, [id]);
     const [brands, setBrands] = useState<Record<number, string>>({});
     const [current, setCurrent] = useState(0);
     const [progress, setProgress] = useState(0);
@@ -95,6 +109,7 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
     };
     const [matchProducts, setMatchProducts] = useState<ProductDto[]>([]);
     const { setLoading } = useLoading();
+    const images = product?.imageUrl ?? [];
 
     //fetch товарів які мечаться
     useEffect(() => {
@@ -115,18 +130,18 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                 fetch(`/api/products/${id}`).then(r => r.json()),
                 fetch(`/api/Products/stats/all-grouped`).then(r => r.json()),
             ]);
-            const stats = statsRes.find((s: any) => s.name === productRes.name);
-            setProduct({
-                ...productRes,
-                availableColors: stats?.availableColors ?? [],
-                availableSizes: stats?.availableSizes ?? [],
+            const matchedStats = statsRes.find((s: any) => s.name === productRes.name);
+            setProduct(productRes);
+            setStats({
+                availableColors: matchedStats?.availableColors ?? [],
+                availableSizes: matchedStats?.availableSizes ?? [],
             });
         };
         fetchData().finally(() => setLoading(false));
     }, [id]);
 
 
-    const images = product?.imageUrl ?? [];
+
 
     const startTimer = useCallback((index: number) => {
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -145,10 +160,10 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
     }, [images.length]);
 
     useEffect(() => {
-    if (images.length === 0) return;
-    startTimer(current);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-}, [current, images.length]);
+        if (images.length === 0) return;
+        startTimer(current);
+        return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    }, [current, images.length]);
 
     const handleClick = (index: number) => {
         setCurrent(index);
@@ -163,7 +178,7 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                 className="relative w-full h-[800px] pt-[80px] bg-cover bg-center transition-all duration-700 flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg, #FECBBB, #BAA3A9, #95AEBC)' }}
             >
-                <img src={images[current] || '/placeholder.png'} alt='' width={800} height={0} className='object-contain h-full w-auto p-6'/>
+                <img src={images[current] || '/placeholder.png'} alt='' width={800} height={0} className='object-contain h-full w-auto p-6' />
                 {/* Кнопки */}
                 <div className="absolute bottom-8 right-10 flex gap-3 items-center">
                     {images.map((_, i) => (
@@ -196,15 +211,16 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
 
                     {/* Size select */}
                     <SizeSelector
-                        sizes={product.availableSizes ?? []}
+                        sizes={stats.availableSizes}
                         selected={selectedSize}
                         onSelect={setSelectedSize}
                     />
+
                     {/* Colors */}
                     <div>
-                        <p className='text-2xl p-4'>Color: {selectedColor ?? product.availableColors[0]}</p>
+                        <p className='text-2xl p-4'>Color: {selectedColor ?? stats.availableColors[0]}</p>
                         <div className='flex p-4 gap-2'>
-                            {(product.availableColors ?? []).map((color) => (
+                            {stats.availableColors.map((color) => (
                                 <div
                                     key={color}
                                     title={color}
@@ -220,7 +236,7 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                 <div className='flex flex-col grad-2 ml-auto'>
                     <div className='p-2 flex flex-row grad-2 p-4'>
                         <button className='bg-black text-white w-[599px] h-[72px] flex flex-row items-center justify-center gap-3 text-2xl p-4'>
-                            <img src={'/images/icons/whiteBagIcon.png'} alt={''} width={33} height={29}/>
+                            <img src={'/images/icons/whiteBagIcon.png'} alt={''} width={33} height={29} />
                             ADD TO BAG
                         </button>
                         <div className="relative w-[57px] h-[72px] rounded-lg p-4" style={{ background: 'linear-gradient(135deg, #FECBBB, #BAA3A9, #95AEBC)' }}>

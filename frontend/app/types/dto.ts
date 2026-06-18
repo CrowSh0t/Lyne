@@ -11,7 +11,10 @@ export interface ProductDto {
     description?: string;
     details?: string;
     sizeId?: number;
+    colorId?: number;
+    matchProductsId?: number[];
 }
+
 export interface BrandDto {
     id: number;
     name: string;

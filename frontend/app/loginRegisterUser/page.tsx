@@ -52,7 +52,7 @@ export default function loginRegisterUser() {
             localStorage.setItem('username', meData.name || '');
             localStorage.setItem('email', meData.email || '');
             localStorage.setItem('country', meData.country || '');
-
+            window.dispatchEvent(new Event('authChange'));
 
 
             router.push('/myAccount');
