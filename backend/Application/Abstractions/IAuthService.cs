@@ -10,12 +10,7 @@ namespace Application.Abstractions
 {
     public interface IAuthService
     {
-        Task<(bool ok, string message)> RegisterAsync(RegisterRequestDto dto);
-        Task<(bool ok, string message)> LoginAsync(
-            LoginRequestDto dto,
-            string? ip,
-            HttpResponse response,
-            bool isDevelopment);
-        Task LogoutAsync(string refreshToken);
+        Task<AuthResponseDto> LoginAsync(LoginRequestDto loginDto);
+        Task<AuthResponseDto> RegisterAsync(RegisterRequestDto registerDto);
     }
 }

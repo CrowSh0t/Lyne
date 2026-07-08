@@ -6,13 +6,10 @@ using System.Threading.Tasks;
 
 namespace Domains.Entities
 {
-    public enum Sizes
+    public class Size
     {
-        XS,
-        S,
-        M,
-        L,
-        XL,
-        XXL
+        public int Id { get; set; }
+        public required string Name { get; set; } // XS, S, M, L, XL, XXL
+        public ICollection<Products> Products { get; set; } = new List<Products>();
     }
 }
