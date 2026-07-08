@@ -172,9 +172,9 @@ export default function Items() {
                                     <span>{p.name}</span>
                                 </td>
                                 <td className="py-3">{brands[p.brandId] ?? "—"}</td>
-                                <td className="py-3 text-gray-400">{p.code ?? "—"}</td>
+                                <td className="py-3 text-gray-400">{p.productCode ?? "—"}</td>
                                 <td className="py-3">{p.price}$</td>
-                                <td className="py-3">{p.quantity != null ? `${p.quantity} item` : "—"}</td>
+                                <td className="py-3">{p.stockQuantity != null ? `${p.stockQuantity} item` : "—"}</td>
                                 <td className="py-3">
                                     <span className={p.status === "available" ? "text-gray-700" : "font-bold"}>
                                         {p.status ?? "—"}

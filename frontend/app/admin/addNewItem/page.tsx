@@ -1,62 +1,47 @@
 'use client'
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useAdminHeaderStore } from "@/app/store/adminHeader";
+import { BrandDto, CategoryDto, ColorDto, ProductDto, SizeDto } from "@/app/types/dto";
+import { getBrands, getCategories, getColors, getProducts, getSizes } from "@/app/api/fetchApi/adminApi";
+import { useLoading } from "@/app/context/LoadingContext";
+import { useRouter } from "next/navigation"; // Виправлено для Next.js App Router
 
-interface ProductDto {
-    id: number;
-    name: string;
-    brandId: number;
-    imageUrl?: string[];
-    price: number;
-    quantity?: number;
-    status?: string;
-    categoryId?: number;
-    code?: string;
-    description?: string;
-}
-interface BrandDto {
-    id: number;
-    name: string;
-}
-interface CreateProductDto {
-    name: string;
-    brandId: number;
-    description: string;
-    details: string;
-    price: number;
-    colorId: number;
-    sizeId: number;
-    composition: string;
-    categoriesId: number[];
-    matchProductsId: number[];
-    imageUrl: string[];
-}
+// Імітація завантаження файлу на сервер/хмару. 
+// ЗАМІНІТЬ ЦЕЙ КОД на ваш реальний URL завантаження, якщо є окремий ендпоінт.
+const uploadFileToServer = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
 
+    // Приклад запиту на ваш ендпоінт завантаження (якщо він є):
+    // const res = await fetch('/api/upload', { method: 'POST', body: formData });
+    // const data = await res.json();
+    // return data.url;
+
+    // Тимчасова заглушка: повертає локальне посилання для тесту, щоб код не падав
+    return URL.createObjectURL(file);
+};
 
 export default function addNewItem() {
+    const router = useRouter();
+    const { setLoading } = useLoading();
     const [products, setProducts] = useState<ProductDto[]>([]);
+    const [colors, setColors] = useState<ColorDto[]>([]);
     const [brands, setBrands] = useState<BrandDto[]>([]);
+    const [categories, setCategories] = useState<CategoryDto[]>([]);
+    const [sizes, setSizes] = useState<SizeDto[]>([]);
     const [isMassMarket, setIsMassMarket] = useState(false)
     const [isPremium, setIsPremium] = useState(false)
     const [isBanner, setIsBanner] = useState(false)
     const [isNewsletter, setIsNewsletter] = useState(false)
-    const [formData, setFormData] = useState<CreateProductDto>({
-        name: '',
-        brandId: 0,
-        description: '',
-        details: '',
-        price: 0,
-        colorId: 0,
-        sizeId: 0,
-        composition: '',
-        categoriesId: [],
-        matchProductsId: [],
-        imageUrl: [],
-    })
+
+    // Розширюємо тип, щоб підтримувати imageUrl як масив рядків або рядок
+    const [formData, setFormData] = useState<Partial<ProductDto> & { imageUrl?: string[], categoriesId?: number[], details?: string }>({
+        categoriesId: []
+    });
     const [images, setImages] = useState<(File | null)[]>([null, null, null, null])
     const [previews, setPreviews] = useState<(string | null)[]>([null, null, null, null])
+
     const fileInputRefs = [
         useRef<HTMLInputElement>(null),
         useRef<HTMLInputElement>(null),
@@ -66,13 +51,23 @@ export default function addNewItem() {
     const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
+        setLoading(true);
         Promise.all([
-            fetch('/api/products').then(r => r.json()),
-            fetch('/api/brands').then(r => r.json()),
-        ]).then(([prods, brnds]: [ProductDto[], BrandDto[]]) => {
-            setProducts(prods);
-            setBrands(brnds);
-        });
+            getColors(),
+            getProducts(),
+            getBrands(),
+            getSizes(),
+            getCategories()
+        ])
+            .then(([colorsData, productsData, brandsData, sizesData, categoryData]) => {
+                setColors(colorsData);
+                setProducts(productsData);
+                setBrands(brandsData);
+                setSizes(sizesData);
+                setCategories(categoryData);
+            })
+            .catch((error) => console.error("Помилка при отриманні даних:", error))
+            .finally(() => setLoading(false));
     }, []);
 
     const handleImageClick = (index: number) => {
@@ -91,40 +86,94 @@ export default function addNewItem() {
         setPreviews(newPreviews)
     }
 
+
+    const handleCategoryChange = (catId: number, isChecked: boolean) => {
+        setFormData(prev => {
+            const currentIds = prev.categoriesId || [];
+            if (isChecked) {
+                return { ...prev, categoriesId: [...currentIds, catId] };
+            } else {
+                return { ...prev, categoriesId: currentIds.filter(id => id !== catId) };
+            }
+        });
+    };
+
     const handleCreate = async () => {
-        // // Спочатку завантажуємо фото
-        // const uploadedUrls: string[] = []
+        setLoading(true);
+        try {
+            const uploadedUrls: string[] = [];
+            for (const file of images) {
+                if (file) {
+                    const url = await uploadFileToServer(file);
+                    uploadedUrls.push(url);
+                }
+            }
 
-        // for (const file of images) {
-        //     if (!file) continue
-        //     const fd = new FormData()
-        //     fd.append('file', file)
+            const finalCategories = formData.categoriesId && formData.categoriesId.length > 0
+                ? formData.categoriesId
+                : [1];
 
-        //     const res = await fetch('/api/upload', {
-        //         method: 'POST',
-        //         body: fd,
-        //     })
-        //     if (res.ok) {
-        //         const { url } = await res.json()
-        //         uploadedUrls.push(url)
-        //     }
-        // }
+            // Додаємо статус "available" автоматично для обох варіантів регістру
+            const cleanPayload = {
+                // З великої літери (PascalCase)
+                Name: formData.name || "Default Name",
+                Description: formData.description || "Default Description",
+                Details: formData.details || "No details provided",
+                ProductCode: formData.productCode || "CODE123",
+                Price: formData.price ? Number(formData.price) : 0,
+                StockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : 0,
+                BrandId: formData.brandId ? Number(formData.brandId) : 0,
+                ColorId: formData.colorId ? Number(formData.colorId) : 0,
+                SizeId: formData.sizeId ? Number(formData.sizeId) : 0,
+                CategoriesId: finalCategories,
+                ImageUrl: uploadedUrls,
+                IsMassMarket: isMassMarket,
+                IsPremium: isPremium,
+                IsBanner: isBanner,
+                IsNewsletter: isNewsletter,
+                Status: "available", // <--- Автоматичний статус з великої літери
 
-        // // Потім створюємо товар з url фото
-        // const res = await fetch('/api/products', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ ...formData, imageUrl: uploadedUrls }),
-        // })
+                // З маленької літери (camelCase)
+                name: formData.name || "Default Name",
+                description: formData.description || "Default Description",
+                details: formData.details || "No details provided",
+                productCode: formData.productCode || "CODE123",
+                price: formData.price ? Number(formData.price) : 0,
+                stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : 0,
+                brandId: formData.brandId ? Number(formData.brandId) : 0,
+                colorId: formData.colorId ? Number(formData.colorId) : 0,
+                sizeId: formData.sizeId ? Number(formData.sizeId) : 0,
+                categoriesId: finalCategories,
+                imageUrl: uploadedUrls,
+                isMassMarket: isMassMarket,
+                isPremium: isPremium,
+                isBanner: isBanner,
+                isNewsletter: isNewsletter,
+                status: "available" // <--- Автоматичний статус з маленької літери
+            };
 
-        // if (res.ok) {
-        //     const newProduct = await res.json()
-        //     setProducts(prev => [...prev, newProduct])
-        // }
-        setShowModal(true);
+            const res = await fetch(`/api/products`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(cleanPayload),
+            });
+
+            if (res.ok) {
+                setShowModal(true);
+            } else {
+                const errorText = await res.text();
+                alert(`Item doesn't add: ${errorText}`);
+            }
+        } catch (error) {
+            console.error("Error while item added:", error);
+            alert("Сталася помилка при збереженні.");
+        } finally {
+            setLoading(false);
+        }
     }
 
-    // Компонент однієї кнопки-фото
     const PhotoButton = ({ index, size }: { index: number, size: 'large' | 'small' }) => (
         <>
             <input
@@ -135,6 +184,7 @@ export default function addNewItem() {
                 onChange={e => handleImageChange(index, e.target.files?.[0] ?? null)}
             />
             <button
+                type="button"
                 onClick={() => handleImageClick(index)}
                 className={`border-none outline-none rounded overflow-hidden relative flex items-center justify-center
                 ${size === 'large' ? 'w-full h-[260px]' : 'w-1/3 h-[130px]'}`}
@@ -155,19 +205,8 @@ export default function addNewItem() {
         </>
     )
 
-    // Хелпер для простих полів
-    const handleChange = (field: keyof CreateProductDto, value: string | number) => {
-        setFormData(prev => ({ ...prev, [field]: value }))
-    }
-
     const setRightContent = useAdminHeaderStore(s => s.setRightContent)
-
-    useEffect(() => {
-        setRightContent(
-            <>
-            </>
-        )
-    }, [])
+    useEffect(() => { if (setRightContent) setRightContent(<></>) }, [])
 
     return (
         <div>
@@ -178,7 +217,6 @@ export default function addNewItem() {
             </div>
             <div className="p-4 flex flex-row">
                 <h1 className="text-3xl font-medium">New item</h1>
-                {/* div із вибором мас маркет або преміум сегмент */}
                 <div className="pl-36 flex">
                     <label className="text-2xl flex items-center gap-2 cursor-pointer px-6">
                         <input
@@ -217,23 +255,28 @@ export default function addNewItem() {
                         Premium segment
                     </label>
                 </div>
-
             </div>
-            <div className="flex flex-column grab-2">
-                {/* div із заповненням полів */}
-                <div className="p-6">
+
+            <div className="flex flex-row gap-2">
+                <div className="p-6 w-1/2">
                     <div className="py-2">
                         <h2 className="text-xl">Name of Item</h2>
                         <input className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded"
-                            value={formData.name}
-                            onChange={e => handleChange('name', e.target.value)} />
+                            value={formData.name ?? ''}
+                            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} />
                     </div>
 
                     <div className="py-2">
                         <h2 className="text-xl">Short Description</h2>
                         <textarea className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-20"
-                            value={formData.description}
-                            onChange={e => handleChange('description', e.target.value)} />
+                            value={formData.description ?? ''}
+                            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} />
+                    </div>
+                    <div className="py-2">
+                        <h2 className="text-xl">Details</h2>
+                        <textarea className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-20"
+                            value={formData.details ?? ''}
+                            onChange={(e) => setFormData(prev => ({ ...prev, details: e.target.value }))} />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 py-2">
@@ -241,9 +284,8 @@ export default function addNewItem() {
                             <h2>Brand</h2>
                             <div className="relative flex items-center">
                                 <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none"
-                                    value={formData.brandId}
-                                    onChange={e => handleChange('brandId', Number(e.target.value))}
-                                >
+                                    value={formData.brandId ?? ''}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, brandId: Number(e.target.value) }))} >
                                     <option value={0}>—</option>
                                     {brands.map(b => (
                                         <option key={b.id} value={b.id}>{b.name}</option>
@@ -256,10 +298,12 @@ export default function addNewItem() {
                             <h2>Color</h2>
                             <div className="relative flex items-center">
                                 <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none"
-                                    value={formData.colorId}
-                                    onChange={e => handleChange('colorId', Number(e.target.value))}
-                                >
+                                    value={formData.colorId ?? ''}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, colorId: Number(e.target.value) }))} >
                                     <option value={0}>—</option>
+                                    {colors.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
                                 </select>
                                 <span className="absolute right-3 pointer-events-none text-sm">▾</span>
                             </div>
@@ -267,43 +311,72 @@ export default function addNewItem() {
                         <div>
                             <h2>Quantity</h2>
                             <input className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded"
-                                type="number" />
+                                type="number"
+                                value={formData.stockQuantity ?? ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, stockQuantity: Number(e.target.value) }))} />
                         </div>
                         <div>
                             <h2>Size</h2>
                             <div className="relative flex items-center">
                                 <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none"
-                                    value={formData.sizeId}
-                                    onChange={e => handleChange('sizeId', Number(e.target.value))}
-                                >
+                                    value={formData.sizeId ?? ''}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, sizeId: Number(e.target.value) }))} >
                                     <option value={0}>—</option>
-                                    <option value={1}>XS</option>
-                                    <option value={2}>S</option>
-                                    <option value={3}>M</option>
-                                    <option value={4}>L</option>
-                                    <option value={5}>XL</option>
+                                    {sizes.map(s => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                    ))}
                                 </select>
                                 <span className="absolute right-3 pointer-events-none text-sm">▾</span>
                             </div>
                         </div>
                         <div>
                             <h2>Code</h2>
-                            <input className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded" />
+                            <input className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded"
+                                value={formData.productCode ?? ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, productCode: e.target.value }))} />
                         </div>
                         <div>
                             <h2>Price</h2>
                             <input className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded"
                                 type="number"
-                                value={formData.price}
-                                onChange={e => handleChange('price', Number(e.target.value))} />
+                                value={formData.price ?? ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, price: Number(e.target.value) }))} />
+                        </div>
+                        <div className="col-span-2">
+                            <h2 className="text-xl mb-2">Categories</h2>
+                            <div className="grid grid-cols-2 gap-2 bg-gray-100 p-3 rounded max-h-40 overflow-y-auto">
+                                {categories.map(c => {
+                                    const isChecked = formData.categoriesId?.includes(c.id) || false;
+                                    return (
+                                        <label key={c.id} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-200 rounded transition-colors text-lg">
+                                            <input
+                                                type="checkbox"
+                                                checked={isChecked}
+                                                onChange={(e) => handleCategoryChange(c.id, e.target.checked)}
+                                                className="hidden"
+                                            />
+                                            <div className={`w-5 h-5 rounded-sm flex items-center justify-center transition-colors
+                        ${isChecked ? 'bg-black/50' : 'bg-white border border-gray-300'}`}
+                                            >
+                                                {isChecked && (
+                                                    <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+                                                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                    </svg>
+                                                )}
+                                            </div>
+                                            {c.name}
+                                        </label>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
-                    {/* div для знижки */}
+
                     <div className="p-2">
                         <h1 className="text-2xl font-medium">Add discount %</h1>
                         <h2>Amount of discount, %</h2>
                         <input className="w-[232px] bg-gray-100 border-none outline-none px-3 py-2 rounded" />
-                        <div className="flex flex-row grab-2">
+                        <div className="flex flex-row gap-2">
                             <div className="p-2 w-[302px]">
                                 <h2>Start date</h2>
                                 <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none">
@@ -315,14 +388,13 @@ export default function addNewItem() {
                                 <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none">
                                     <option>1</option>
                                 </select>
-
                             </div>
                         </div>
                     </div>
-                    {/* div для Promote */}
+
                     <div className="p-2">
                         <h1 className="text-2xl font-medium">Promote the item</h1>
-                        <div className="flex flex-row grab-2">
+                        <div className="flex flex-row gap-2">
                             <label className="text-2xl flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -331,7 +403,7 @@ export default function addNewItem() {
                                     className="hidden"
                                 />
                                 <div className={`w-5 h-5 rounded-sm flex items-center justify-center transition-colors
-                        ${isNewsletter ? 'bg-black/50' : 'bg-gray-200'}`}
+                                ${isNewsletter ? 'bg-black/50' : 'bg-gray-200'}`}
                                 >
                                     {isNewsletter && (
                                         <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
@@ -349,7 +421,7 @@ export default function addNewItem() {
                                     className="hidden"
                                 />
                                 <div className={`w-5 h-5 rounded-sm flex items-center justify-center transition-colors
-                        ${isBanner ? 'bg-black/50' : 'bg-gray-200'}`}
+                                ${isBanner ? 'bg-black/50' : 'bg-gray-200'}`}
                                 >
                                     {isBanner && (
                                         <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
@@ -362,33 +434,12 @@ export default function addNewItem() {
                         </div>
                     </div>
                 </div>
-                {/* права частина екрану */}
-                <div className="pr-12 pl-4 w-1/2 ml-auto">
-                    <div className="py-2">
-                        <h2 className="text-xl">Fabric composition</h2>
-                        <textarea className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-20"
-                            value={formData.composition}
-                            onChange={e => handleChange('composition', e.target.value)} />
-                    </div>
+
+                <div className="pr-12 pl-4 w-1/2">
                     <div className="py-2">
                         <h2 className="text-xl">Add photos & video</h2>
-                        {/* <button className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-[260px] items-center flex justify-center">
-                            <img src={"/images/admin/icons/templateForAddPhotoIcon.png"} alt={""} width={248} height={248} />
-                        </button>
-                        <div className="flex flex-row gap-3 pt-6">
-                            <button className="w-1/3 bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-[130px] items-center flex justify-center">
-                                <img src={"/images/admin/icons/templateForAddPhotoIcon.png"} alt={""} width={113} height={112} />
-                            </button>
-                            <button className="w-1/3 bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-[130px] items-center flex justify-center p-2">
-                                <img src={"/images/admin/icons/templateForAddPhotoIcon.png"} alt={""} width={113} height={112} />
-                            </button>
-                            <button className="w-1/3 bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-[130px] items-center flex justify-center p-2">
-                                <img src={"/images/admin/icons/templateForAddPhotoIcon.png"} alt={""} width={113} height={112} />
-                            </button>
-                        </div> */}
                         <PhotoButton index={0} size="large" />
 
-                        {/* 3 маленькі */}
                         <div className="flex flex-row gap-3 pt-6">
                             <PhotoButton index={1} size="small" />
                             <PhotoButton index={2} size="small" />
@@ -396,42 +447,36 @@ export default function addNewItem() {
                         </div>
                     </div>
                     <div className="flex flex-row gap-2 p-4">
-                        <button className="flex flex-row">
+                        <button type="button" className="flex flex-row" onClick={() => handleImageClick(0)}>
                             <img src={"/images/admin/icons/uploadFromIcon.png"} alt={""} width={24} height={24} />
-                            <label>Upload from your computer</label>
-                        </button>
-                        <button className="flex ml-auto">
-                            <img src={"/images/admin/icons/addMoreIcon.png"} alt={""} width={119} height={28} />
+                            <span className="pl-2">Upload from your computer</span>
                         </button>
                     </div>
-                    <button className="bg-black flex justify-center items-center py-3 text-white w-full text-2xl mt-auto" onClick={() => handleCreate()}>
+                    <button type="button" className="bg-black flex justify-center items-center py-3 text-white w-full text-2xl mt-10" onClick={handleCreate}>
                         Add new Item
                     </button>
-                    {showModal && (
-                        <div className="fixed inset-0 bg-white/70 flex items-center justify-center z-50">
-                            <div className="bg-[#1A1D23] flex items-center justify-center w-[775px] h-[335px] relative">
-
-                                <button className="absolute top-3 right-3" onClick={() => setShowModal(false)}>
-                                    <img src={"/images/admin/icons/closeIcon.png"} />
-                                </button>
-
-                                <img src={"/images/admin/ImageForModal.png"} />
-                                <div className="flex flex-col gap-2">
-                                    <p className="text-lg text-white">The item is successfully added to your website</p>
-                                    <Link href={"/admin/items"}>
-                                        <button
-                                            onClick={() => setShowModal(false)}
-                                            className="px-4 py-2 bg-white"
-                                        >
-                                            View on the website
-                                        </button>
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
+
+            {showModal && (
+                <div className="fixed inset-0 bg-white/70 flex items-center justify-center z-50">
+                    <div className="bg-[#1A1D23] flex items-center justify-center w-[775px] h-[335px] relative">
+                        <button className="absolute top-3 right-3" onClick={() => { setShowModal(false); router.push('/admin/items'); }}>
+                            <img src={"/images/admin/icons/closeIcon.png"} alt="close" />
+                        </button>
+                        <img src={"/images/admin/ImageForModal.png"} alt="success" />
+                        <div className="flex flex-col gap-2 pl-4">
+                            <p className="text-lg text-white">The item is successfully added to your website</p>
+                            <button
+                                onClick={() => { setShowModal(false); router.push('/admin/items'); }}
+                                className="px-4 py-2 bg-white text-black font-medium self-start"
+                            >
+                                View on the website
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

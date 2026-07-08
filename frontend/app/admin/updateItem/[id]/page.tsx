@@ -3,36 +3,81 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import React from "react";
+import { useRouter } from "next/navigation";
 import { useLoading } from "@/app/context/LoadingContext";
 import { useAdminHeaderStore } from "@/app/store/adminHeader";
-import { BrandDto, ProductDto } from "@/app/types/dto";
+import { BrandDto, ColorDto, ProductDto } from "@/app/types/dto";
+import { getBrands, getColors, getProduct } from "@/app/api/fetchApi/adminApi";
 
 export default function UpdateItem({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params);
+    const router = useRouter();
     const [product, setProduct] = useState<ProductDto | null>(null);
+    const [formData, setFormData] = useState<Partial<ProductDto>>({});
     const [brands, setBrands] = useState<BrandDto[]>([]);
+    const [colors, setColors] = useState<ColorDto[]>([]);
     const { setLoading } = useLoading();
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     useEffect(() => {
+        if (!id) {
+            Promise.all([getColors(), getBrands()]).then(([colors, brands]) => {
+                setColors(colors);
+                setBrands(brands);
+            });
+            return;
+        }
+
         setLoading(true);
         Promise.all([
-            fetch(`/api/products/${id}`).then(r => r.json()),
-            fetch('/api/brands').then(r => r.json()),
-        ]).then(([prod, brnds]) => {
-            setProduct(prod);
-            setBrands(brnds);
-        }).finally(() => setLoading(false));
+            getColors(),
+            getProduct(id),
+            getBrands()
+        ])
+            .then(([colorsData, productData, brandsData]) => {
+                setColors(colorsData);
+                setProduct(productData);
+                setFormData(productData);
+                setBrands(brandsData);
+            })
+            .catch((error) => console.error("Помилка:", error))
+            .finally(() => setLoading(false));
     }, [id]);
-    
+
     const setRightContent = useAdminHeaderStore(s => s.setRightContent)
-    
-        useEffect(() => {
-            setRightContent(
-                <>
-                </>
-            )
-        }, [])
-        
+
+    useEffect(() => {
+        setRightContent(
+            <>
+            </>
+        )
+    }, [])
+
+    const handleUpdate = async () => {
+        setIsSubmitting(true);
+        try {
+            const res = await fetch(`/api/products/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            if (res.ok) {
+                alert("Item update succsesful!");
+                router.push('/admin/items');
+            } else {
+                const errorText = await res.text();
+                alert(`Item doesn't update: ${errorText}`);
+            }
+        } catch (error) {
+            console.error("Error while item updating:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
         <div>
@@ -43,8 +88,8 @@ export default function UpdateItem({ params }: { params: Promise<{ id: string }>
             </div>
             <div className="flex flex-row grad-2">
                 <div className="p-4 w-1/2">
-                    {product?.imageUrl?.map((url, i) => (
-                        <img key={i} src={url} alt={product.name} className="w-[314px] object-cover rounded" />
+                    {product && product.imageUrl?.map((url: string, i: number) => (
+                        <img key={i} src={url} alt={`${product.name} ${i + 1}`} className="w-[314px] object-cover rounded" />
                     ))}
                 </div>
                 <div className="ml-auto p-4 w-full">
@@ -52,26 +97,30 @@ export default function UpdateItem({ params }: { params: Promise<{ id: string }>
                         <div className="pr-4">
                             <p>Name</p>
                             <input className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded"
-                                defaultValue={product?.name ?? ''} />
+                                value={formData.name ?? ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} />
                         </div>
 
                         <div className="pr-4">
                             <p>Code</p>
                             <input className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded"
-                                defaultValue={product?.code ?? ''} />
+                                value={formData.productCode ?? ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, productCode: e.target.value }))} />
                         </div>
                     </div>
                     <div className="pr-4">
                         <p>Short description</p>
                         <textarea className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-20"
-                            defaultValue={product?.description ?? ''} />
+                            value={formData.description ?? ''}
+                            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} />
                     </div>
                     <div className="relative">
                         <div className="">
                             <h2>Brand</h2>
                             <div className="relative flex items-center">
                                 <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none pr-8"
-                                    defaultValue={product?.brandId ?? 0}
+                                    value={formData.brandId ?? ''}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, brandId: Number(e.target.value) }))}
                                 >
                                     {brands.map(b => (
                                         <option key={b.id} value={b.id}>{b.name}</option>
@@ -82,16 +131,23 @@ export default function UpdateItem({ params }: { params: Promise<{ id: string }>
                         </div>
                         <div>
                             <h2>Color</h2>
-                            <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none"
+                            <select className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded appearance-none pr-8"
+                                value={formData.colorId ?? ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, colorId: Number(e.target.value) }))}
                             >
+                                {colors.map(c => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
                             </select>
+                            <span className="absolute right-3 pointer-events-none text-sm">▾</span>
                         </div>
                         <div>
                             <h2>Quantity</h2>
                             <input
                                 className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded"
                                 type="number"
-                                defaultValue={product?.quantity ?? ''}
+                                value={formData.stockQuantity ?? ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, stockQuantity: Number(e.target.value) }))}
                             />
                         </div>
                         <div>
@@ -99,26 +155,57 @@ export default function UpdateItem({ params }: { params: Promise<{ id: string }>
                             <input
                                 className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded"
                                 type="number"
-                                defaultValue={product?.sizeId ?? ''}
+                                value={formData.sizeId ?? ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, sizeId: Number(e.target.value) }))}
                             />
                         </div>
                         <div>
                             <h2>Price</h2>
                             <input className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded"
                                 type="number"
-                                defaultValue={product?.price} />
+                                value={formData.price ?? ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, price: Number(e.target.value) }))} />
                         </div>
                     </div>
                     <div>
                         <p>Fabric composition</p>
                         <textarea className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-20"
-                            defaultValue={product?.details ?? ''} />
+                            value={formData.details ?? ''}
+                            onChange={(e) => setFormData(prev => ({ ...prev, details: e.target.value }))} />
                     </div>
-                    <Link href="/admin/items">
-                        <button className="bg-black flex justify-center items-center py-3 text-white w-full text-2xl mt-auto">
-                            Confirm changes
-                        </button>
-                    </Link>
+                    <button
+                        className="bg-black flex justify-center items-center gap-2 py-3 text-white w-full text-2xl mt-auto disabled:opacity-60 disabled:cursor-not-allowed"
+                        onClick={handleUpdate}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? (
+                            <>
+                                <svg
+                                    className="animate-spin h-6 w-6"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    />
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                                    />
+                                </svg>
+                                <span>Updating...</span>
+                            </>
+                        ) : (
+                            'Confirm changes'
+                        )}
+                    </button>
                 </div>
 
             </div>
