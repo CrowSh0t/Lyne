@@ -37,7 +37,7 @@ export default function loginRegisterUser() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ login: email, password: password }),
+                body: JSON.stringify({ login: email, password: password })
             });
 
             const data = await res.json();
@@ -52,7 +52,7 @@ export default function loginRegisterUser() {
             localStorage.setItem('username', meData.name || '');
             localStorage.setItem('email', meData.email || '');
             localStorage.setItem('country', meData.country || '');
-
+            window.dispatchEvent(new Event('authChange'));
 
 
             router.push('/myAccount');
@@ -107,7 +107,7 @@ export default function loginRegisterUser() {
     return (
         <div className="flex bg-white">
             <div className="mt-4">
-                <Image src={activeTab === "login" ? "/images/firstImageInCreateAccountScreen.png" : "/images/secondImageForCreateAccountScreen.png"}
+                <img src={activeTab === "login" ? "/images/userAccount/firstImageInCreateAccountScreen.png" : "/images/userAccount/secondImageForCreateAccountScreen.png"}
                     alt="preview" width={859} height={1086}
                 />
             </div>
@@ -137,7 +137,7 @@ export default function loginRegisterUser() {
                     </button>
                 </div>
                 <button>
-                    <Image src="/images/LogWithGoogleImgforBtn.png" alt="" width={290} height={49} />
+                    <img src="/images/userAccount/LogWithGoogleImgforBtn.png" alt="" width={290} height={49} />
                 </button>
                 <h4>Or</h4>
                 <div className="mt-4">

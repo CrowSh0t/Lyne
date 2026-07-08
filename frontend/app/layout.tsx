@@ -1,6 +1,6 @@
 import "./globals.css";
 import { Barlow_Condensed } from 'next/font/google';
-import ClientLayout from "./ClientLayout";
+import ClientLayout from "../components/ClientLayout";
 
 const barlowCondensed = Barlow_Condensed({ 
   subsets: ['latin'],

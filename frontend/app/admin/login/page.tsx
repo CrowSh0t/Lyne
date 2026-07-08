@@ -19,6 +19,7 @@ export default function LoginPage() {
     }
 
     setLoading(true);
+    const storage = remember ? localStorage : sessionStorage;
 
     try {
       const res = await fetch('/api/auth/login', {
@@ -34,6 +35,8 @@ export default function LoginPage() {
         setError(data.message || 'Помилка входу.');
         return;
       }
+
+      storage.setItem('adminEmail', email);
       router.push('/admin/main');
     } catch (err) {
       setError('Не вдалось підключитись до сервера.');
@@ -43,7 +46,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="loginBackground">
+    <div className="bg-[url('/images/admin/loginBackground.png')] bg-cover bg-center bg-no-repeat min-h-screen w-full flex flex-col items-center justify-center">
       <div className="text-6xl text-center mb-6 color black">LYNE</div>
       <div className="w-full max-w-2xl px-10">
 

@@ -13,23 +13,22 @@ export default function MyAccountPage() {
     useEffect(() => {
         setName(localStorage.getItem('username') || '');
         setEmail(localStorage.getItem('email') || '');
-
-
+        setCountry(localStorage.getItem('country') || '');
     }, []);
 
     type Tab = 'account' | 'orders' | 'contact'
     const [activeTab, setActiveTab] = useState<Tab>('account')
 
     const tabs = [
-        { id: 'account' as Tab, label: 'My account', icon: '/images/usersIcon.png' },
-        { id: 'orders' as Tab, label: 'My orders', icon: '/images/orderIcon.png' },
-        { id: 'contact' as Tab, label: 'Contact us', icon: '/images/contactUsIcon.png' },
+        { id: 'account' as Tab, label: 'My account', icon: '/images/icons/usersIcon.png' },
+        { id: 'orders' as Tab, label: 'My orders', icon: '/images/icons/orderIcon.png' },
+        { id: 'contact' as Tab, label: 'Contact us', icon: '/images/icons/contactUsIcon.png' },
     ]
 
     const backgrounds: Record<Tab, string> = {
-        account: '/images/backgroundForMyAccoutPage.png',
-        orders: '/images/backgroundForOrders.png',
-        contact: '/images/backgroundForContact.png',
+        account: '/images/userAccount/backgroundForMyAccoutPage.png',
+        orders: '/images/userAccount/backgroundForOrders.png',
+        contact: '/images/userAccount/backgroundForContact.png',
     }
 
     return (
@@ -54,7 +53,7 @@ export default function MyAccountPage() {
                                 }`}
                         >
                             <span>{label}</span>
-                            <Image src={icon} alt={label} width={20} height={20} />
+                            <img src={icon} alt={label} width={20} height={20} />
                         </button>
                     ))}
 
@@ -66,7 +65,7 @@ export default function MyAccountPage() {
                         className="flex flex-row items-center gap-2 pb-2 border-b-2 border-transparent"
                     >
                         <span>Log out</span>
-                        <Image src="/images/logoutIcon.png" alt="Log out" width={20} height={20} />
+                        <img src="/images/icons/logoutIcon.png" alt="Log out" width={20} height={20} />
                     </button>
                 </div>
                 {/* Контент під табами */}

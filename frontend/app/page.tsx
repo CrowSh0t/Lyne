@@ -1,36 +1,38 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import ProductCard from '@/components/ProductCard';
+import { useLoading } from './context/LoadingContext';
+import { ProductDto,BrandDto } from './types/dto';
 
 // Додаємо поля для h1 та h3 у дані слайдера
 const sliderData = [
   {
-    img: '/images/firstImageForMainPage.png',
+    img: '/images/homePage/firstImageForMainPage.png',
     title: 'LUXURY\nCOLLECTION',
     subtitle: 'Cookie BB Bag in Monogram',
   },
   {
-    img: '/images/secondImageForMainPage.png',
+    img: '/images/homePage/secondImageForMainPage.png',
     title: 'Tailored\nLegacy',
     subtitle: 'Sharp Form — Suits that speak without words',
   },
   {
-    img: '/images/thirdImageForMainPage.png',
+    img: '/images/homePage/thirdImageForMainPage.png',
     title: 'The Workwear\nCode',
     subtitle: 'Stripped back. Styled forward.',
   },
 ];
 
 const categories = [
-  { label: 'WOMEN', href: '/women', image: '/images/womenCategory.png' },
-  { label: 'MEN', href: '/men', image: '/images/menCategory.png' },
-  { label: 'KIDS', href: '/kids', image: '/images/kidsCategory.png' },
-  { label: 'ACCESSORIES', href: '/accessories', image: '/images/accessoriesCategory.png' },
+  { label: 'WOMEN', href: '/women', image: '/images/homePage/womenCategory.png' },
+  { label: 'MEN', href: '/men', image: '/images/homePage/menCategory.png' },
+  { label: 'KIDS', href: '/kids', image: '/images/homePage/kidsCategory.png' },
+  { label: 'ACCESSORIES', href: '/accessories', image: '/images/homePage/accessoriesCategory.png' },
 ];
 
-const defaultImage = '/images/baseImageForGenderCategory.png';
-
-
+const defaultImage = '/images/homePage/baseImageForGenderCategory.png';
 
 const DURATION = 3000;
 
@@ -41,6 +43,34 @@ export default function Home() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(Date.now());
   const [hoveredImage, setHoveredImage] = useState(defaultImage);
+  const [products, setProducts] = useState<ProductDto[]>([]);
+  const [brands, setBrands] = useState<Record<number, string>>({});
+  const { setLoading } = useLoading();
+  const uniqueProducts = products.reduce((acc, p) => {
+    const existing = acc.find(x => x.name === p.name);
+    if (!existing) {
+      acc.push(p);
+    } else if (p.id > existing.id) {
+      return acc.map(x => x.name === p.name ? p : x);
+    }
+    return acc;
+  }, [] as ProductDto[]);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      fetch('/api/products').then(r => r.json()),
+      fetch('/api/brands').then(r => r.json()),
+    ]).then(([prods, brnds]: [ProductDto[], BrandDto[]]) => {
+      setProducts(prods);
+      const brandMap: Record<number, string> = {};
+      brnds.forEach(b => { brandMap[b.id] = b.name; });
+      setBrands(brandMap);
+    }).finally(() => setLoading(false));
+  }, []);
+
+
+
 
   const startTimer = (index: number) => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -143,17 +173,17 @@ export default function Home() {
 
         {/* Права частина — картинка */}
         <div className="ml-auto">
-          <Image src={hoveredImage} alt="" width={967} height={800} className="w-full h-full object-cover" />
+          <img src={hoveredImage} alt="" width={967} height={800} className="w-full h-full object-cover" />
         </div>
       </div>
 
       {/* майбутній cover із брендами */}
       <div className="flex items-center justify-center px-16">
-        <Image src="/images/DiorBrand.png" alt="" width={199} height={149} className='px-9' />
-        <Image src="/images/PradaBrand.png" alt="" width={220} height={233} className='px-9' />
-        <Image src="/images/HermesBrand.png" alt="" width={190} height={189} className='px-9' />
-        <Image src="/images/GucciBrand.png" alt="" width={228} height={142} className='px-9' />
-        <Image src="/images/CartierBrand.png" alt="" width={209} height={209} className='px-9' />
+        <img src="/images/homePage/DiorBrand.png" alt="" width={199} height={149} className='px-9' />
+        <img src="/images/homePage/PradaBrand.png" alt="" width={220} height={233} className='px-9' />
+        <img src="/images/homePage/HermesBrand.png" alt="" width={190} height={189} className='px-9' />
+        <img src="/images/homePage/GucciBrand.png" alt="" width={228} height={142} className='px-9' />
+        <img src="/images/homePage/CartierBrand.png" alt="" width={209} height={209} className='px-9' />
       </div>
 
       {/*  */}
@@ -162,16 +192,26 @@ export default function Home() {
         after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:bg-[#2C2B2B] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-800 after:origin-left ">
           New arrivals
         </button>
-        
+
         <button className="text-left text-[28px] flex ml-auto items-center justify-center gap-2">
           View All
-          <Image src="/images/ViewAllBtn.png" alt="" width={60} height={40} />
+          <img src="/images/icons/ViewAllBtn.png" alt="" width={60} height={40} />
         </button>
       </div>
 
       {/* Лінія із колекцією одягу */}
       <div className='py-9'>
-        <hr />
+        <div className='py-9 flex gap-4'>
+          {uniqueProducts.map(product => (
+            <Link key={product.id} href={`/product/${product.id}`}>
+              <ProductCard
+                key={product.id}
+                product={product}
+                brandName={brands[product.brandId] ?? ''}
+              />
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
