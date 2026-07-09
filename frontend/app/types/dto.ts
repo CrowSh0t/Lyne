@@ -13,7 +13,6 @@ export interface ProductDto {
     sizeId?: number;
     colorId?: number;
     matchProductsId?: number[];
-
 }
 
 export interface BrandDto {
