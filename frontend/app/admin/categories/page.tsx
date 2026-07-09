@@ -6,23 +6,23 @@ import { CategoryDto } from "@/app/types/dto";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const CATEGORIES = [
-    'Mass Market', 'Premium Segment', 'Woman', 'Men', 'Kids', 'Accessories', 'House'
-]
-const MOCK_CATEGORIES = [
-    { id: 1, name: 'WOMAN', image: '/images/admin/categories/woman.png', parent: null },
-    { id: 2, name: 'WOMAN / PREMIUM', image: '/images/admin/categories/woman-premium.png', parent: 'WOMAN' },
-    { id: 3, name: 'MEN', image: '/images/admin/categories/men.png', parent: null },
-    { id: 4, name: 'MEN / PREMIUM', image: '/images/admin/categories/men-premium.png', parent: 'MEN' },
-    { id: 5, name: 'KIDS', image: '/images/admin/categories/kids.png', parent: null },
-]
-
 export default function Category() {
     const setRightContent = useAdminHeaderStore(s => s.setRightContent)
     const [selected, setSelected] = useState<string[]>([])
     const [categories, setCategories] = useState<CategoryDto[]>([])
     const { setLoading } = useLoading();
 
+    useState(()=>{
+        setLoading(true);
+        Promise.all([
+            getCategories()
+        ])
+            .then(([categoryData]) => {
+                setCategories(categoryData);
+            })
+            .catch((error) => console.error("Error while getting data:", error))
+            .finally(() => setLoading(false));
+    })
 
     useEffect(() => {
         setRightContent(<img src={"/images/admin/icons/searchIcon.png"} />)
@@ -60,33 +60,33 @@ export default function Category() {
                     <h1 className="text-4xl font-large pt-6 pb-2">Category</h1>
                     <hr />
                     <div className="flex flex-row flex-wrap">
-                        {CATEGORIES.map(name => (
-                            <label key={name} className="text-2xl flex items-center gap-2 cursor-pointer px-6 py-2">
+                        {categories.map(c => (
+                            <label key={c.name} className="text-2xl flex items-center gap-2 cursor-pointer px-6 py-2">
                                 <input type="checkbox" className="hidden"
-                                    checked={selected.includes(name)}
-                                    onChange={() => toggle(name)}
+                                    checked={selected.includes(c.name)}
+                                    onChange={() => toggle(c.name)}
                                 />
                                 <div className={`w-5 h-5 rounded-sm flex items-center justify-center transition-colors
-                                    ${selected.includes(name) ? 'bg-black/50' : 'bg-gray-200'}`}
+                                    ${selected.includes(c.name) ? 'bg-black/50' : 'bg-gray-200'}`}
                                 >
-                                    {selected.includes(name) && (
+                                    {selected.includes(c.name) && (
                                         <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
                                             <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                         </svg>
                                     )}
                                 </div>
-                                {name}
+                                {c.name}
                             </label>
                         ))}
                     </div>
                 </div>
                 <div>
                     <div className="divide-y">
-                        {MOCK_CATEGORIES.map(cat => (
+                        {categories.map(cat => (
                             <div key={cat.id} className="flex items-center py-3 px-4 gap-4">
                                 {/* фото */}
                                 <img
-                                    src={cat.image}
+                                    src={cat.imageUrl}
                                     alt={cat.name}
                                     className="w-14 h-14 object-cover"
                                 />

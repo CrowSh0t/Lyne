@@ -66,7 +66,7 @@ export default function addNewItem() {
                 setSizes(sizesData);
                 setCategories(categoryData);
             })
-            .catch((error) => console.error("Помилка при отриманні даних:", error))
+            .catch((error) => console.error("Error while getting data:", error))
             .finally(() => setLoading(false));
     }, []);
 
