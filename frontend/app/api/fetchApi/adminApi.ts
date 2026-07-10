@@ -19,6 +19,11 @@ export const getProduct = async (id: string): Promise<ProductDto> => {
     return handleResponse(res);
 }
 
+export const getCategory = async (id: string): Promise<CategoryDto> => {
+    const res = await fetch(`/api/categories/${id}`);
+    return handleResponse(res);
+}
+
 export const getBrands = async (): Promise<BrandDto[]> => {
     const res = await fetch('/api/brands');
     return handleResponse(res);

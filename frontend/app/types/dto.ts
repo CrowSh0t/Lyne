@@ -23,11 +23,11 @@ export interface BrandDto {
 export interface CategoryDto{
     id: number;
     name: string;
-    descripton: string;
+    description: string;
     imageUrl: string;
-    parentCategoryId: 0;
+    parentCategoryId: number;
     type: string;
-    producsId: number[];
+    productsId: number[];
 }
 
 export interface ColorDto{

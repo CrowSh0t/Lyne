@@ -6,6 +6,8 @@ import { BrandDto, CategoryDto, ColorDto, ProductDto, SizeDto } from "@/app/type
 import { getBrands, getCategories, getColors, getProducts, getSizes } from "@/app/api/fetchApi/adminApi";
 import { useLoading } from "@/app/context/LoadingContext";
 import { useRouter } from "next/navigation"; // Виправлено для Next.js App Router
+import BackElement from "../Components/BackToMainPageElem";
+import PhotoButton, { PhotoSlotValue } from "../Components/PhotoBtn";
 
 // Імітація завантаження файлу на сервер/хмару. 
 // ЗАМІНІТЬ ЦЕЙ КОД на ваш реальний URL завантаження, якщо є окремий ендпоінт.
@@ -13,12 +15,6 @@ const uploadFileToServer = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
 
-    // Приклад запиту на ваш ендпоінт завантаження (якщо він є):
-    // const res = await fetch('/api/upload', { method: 'POST', body: formData });
-    // const data = await res.json();
-    // return data.url;
-
-    // Тимчасова заглушка: повертає локальне посилання для тесту, щоб код не падав
     return URL.createObjectURL(file);
 };
 
@@ -39,16 +35,13 @@ export default function addNewItem() {
     const [formData, setFormData] = useState<Partial<ProductDto> & { imageUrl?: string[], categoriesId?: number[], details?: string }>({
         categoriesId: []
     });
-    const [images, setImages] = useState<(File | null)[]>([null, null, null, null])
-    const [previews, setPreviews] = useState<(string | null)[]>([null, null, null, null])
-
-    const fileInputRefs = [
-        useRef<HTMLInputElement>(null),
-        useRef<HTMLInputElement>(null),
-        useRef<HTMLInputElement>(null),
-        useRef<HTMLInputElement>(null),
-    ]
     const [showModal, setShowModal] = useState(false);
+    const [photoSlots, setPhotoSlots] = useState<(PhotoSlotValue | undefined)[]>([])
+
+    const capitalizeFirst = (value: string) => {
+        if (!value) return value
+        return value.charAt(0).toUpperCase() + value.slice(1)
+    }
 
     useEffect(() => {
         setLoading(true);
@@ -70,23 +63,6 @@ export default function addNewItem() {
             .finally(() => setLoading(false));
     }, []);
 
-    const handleImageClick = (index: number) => {
-        fileInputRefs[index].current?.click()
-    }
-
-    const handleImageChange = (index: number, file: File | null) => {
-        if (!file) return
-
-        const newImages = [...images]
-        newImages[index] = file
-        setImages(newImages)
-
-        const newPreviews = [...previews]
-        newPreviews[index] = URL.createObjectURL(file)
-        setPreviews(newPreviews)
-    }
-
-
     const handleCategoryChange = (catId: number, isChecked: boolean) => {
         setFormData(prev => {
             const currentIds = prev.categoriesId || [];
@@ -97,23 +73,23 @@ export default function addNewItem() {
             }
         });
     };
-
     const handleCreate = async () => {
         setLoading(true);
         try {
             const uploadedUrls: string[] = [];
-            for (const file of images) {
-                if (file) {
-                    const url = await uploadFileToServer(file);
+            for (const slot of photoSlots) {
+                if (!slot) continue;
+                if (slot.file) {
+                    const url = await uploadFileToServer(slot.file);
                     uploadedUrls.push(url);
+                } else if (slot.url) {
+                    uploadedUrls.push(slot.url);
                 }
             }
 
             const finalCategories = formData.categoriesId && formData.categoriesId.length > 0
                 ? formData.categoriesId
                 : [1];
-
-            // Додаємо статус "available" автоматично для обох варіантів регістру
             const cleanPayload = {
                 // З великої літери (PascalCase)
                 Name: formData.name || "Default Name",
@@ -131,25 +107,7 @@ export default function addNewItem() {
                 IsPremium: isPremium,
                 IsBanner: isBanner,
                 IsNewsletter: isNewsletter,
-                Status: "available", // <--- Автоматичний статус з великої літери
-
-                // З маленької літери (camelCase)
-                name: formData.name || "Default Name",
-                description: formData.description || "Default Description",
-                details: formData.details || "No details provided",
-                productCode: formData.productCode || "CODE123",
-                price: formData.price ? Number(formData.price) : 0,
-                stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : 0,
-                brandId: formData.brandId ? Number(formData.brandId) : 0,
-                colorId: formData.colorId ? Number(formData.colorId) : 0,
-                sizeId: formData.sizeId ? Number(formData.sizeId) : 0,
-                categoriesId: finalCategories,
-                imageUrl: uploadedUrls,
-                isMassMarket: isMassMarket,
-                isPremium: isPremium,
-                isBanner: isBanner,
-                isNewsletter: isNewsletter,
-                status: "available" // <--- Автоматичний статус з маленької літери
+                Status: "available",
             };
 
             const res = await fetch(`/api/products`, {
@@ -174,47 +132,20 @@ export default function addNewItem() {
         }
     }
 
-    const PhotoButton = ({ index, size }: { index: number, size: 'large' | 'small' }) => (
-        <>
-            <input
-                type="file"
-                accept="image/*"
-                ref={fileInputRefs[index]}
-                className="hidden"
-                onChange={e => handleImageChange(index, e.target.files?.[0] ?? null)}
-            />
-            <button
-                type="button"
-                onClick={() => handleImageClick(index)}
-                className={`border-none outline-none rounded overflow-hidden relative flex items-center justify-center
-                ${size === 'large' ? 'w-full h-[260px]' : 'w-1/3 h-[130px]'}`}
-                style={previews[index]
-                    ? { backgroundImage: `url(${previews[index]})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-                    : { backgroundColor: '#f3f4f6' }
-                }
-            >
-                {!previews[index] && (
-                    <img
-                        src={"/images/admin/icons/templateForAddPhotoIcon.png"}
-                        alt=""
-                        width={size === 'large' ? 248 : 113}
-                        height={size === 'large' ? 248 : 112}
-                    />
-                )}
-            </button>
-        </>
-    )
+    const handlePhotoChange = (slotIndex: number, values: PhotoSlotValue[]) => {
+        setPhotoSlots(prev => {
+            const newSlots = [...prev]
+            newSlots[slotIndex] = values[0]
+            return newSlots
+        })
+    }
 
     const setRightContent = useAdminHeaderStore(s => s.setRightContent)
     useEffect(() => { if (setRightContent) setRightContent(<></>) }, [])
 
     return (
         <div>
-            <div className="p-4">
-                <Link href={'/admin/main'}>
-                    <img src={'/images/icons/viewAllBtn.png'} alt={''} className='scale-x-[-1] pt-[36px]' width={47} height={34} />
-                </Link>
-            </div>
+            <BackElement />
             <div className="p-4 flex flex-row">
                 <h1 className="text-3xl font-medium">New item</h1>
                 <div className="pl-36 flex">
@@ -263,20 +194,20 @@ export default function addNewItem() {
                         <h2 className="text-xl">Name of Item</h2>
                         <input className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded"
                             value={formData.name ?? ''}
-                            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} />
+                            onChange={(e) => setFormData(prev => ({ ...prev, name: capitalizeFirst(e.target.value) }))} />
                     </div>
 
                     <div className="py-2">
                         <h2 className="text-xl">Short Description</h2>
                         <textarea className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-20"
                             value={formData.description ?? ''}
-                            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} />
+                            onChange={(e) => setFormData(prev => ({ ...prev, description: capitalizeFirst(e.target.value) }))} />
                     </div>
                     <div className="py-2">
                         <h2 className="text-xl">Details</h2>
                         <textarea className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded resize-none h-20"
                             value={formData.details ?? ''}
-                            onChange={(e) => setFormData(prev => ({ ...prev, details: e.target.value }))} />
+                            onChange={(e) => setFormData(prev => ({ ...prev, details: capitalizeFirst(e.target.value) }))} />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 py-2">
@@ -438,16 +369,20 @@ export default function addNewItem() {
                 <div className="pr-12 pl-4 w-1/2">
                     <div className="py-2">
                         <h2 className="text-xl">Add photos & video</h2>
-                        <PhotoButton index={0} size="large" />
+                        <PhotoButton index={0} size="large" imgSrc="/images/admin/icons/templateForAddPhotoIcon.png"
+                            onImagesChange={(values) => handlePhotoChange(0, values)} />
 
                         <div className="flex flex-row gap-3 pt-6">
-                            <PhotoButton index={1} size="small" />
-                            <PhotoButton index={2} size="small" />
-                            <PhotoButton index={3} size="small" />
+                            <PhotoButton index={1} size="small" imgSrc="/images/admin/icons/templateForAddPhotoIcon.png"
+                                onImagesChange={(values) => handlePhotoChange(1, values)} />
+                            <PhotoButton index={2} size="small" imgSrc="/images/admin/icons/templateForAddPhotoIcon.png"
+                                onImagesChange={(values) => handlePhotoChange(2, values)} />
+                            <PhotoButton index={3} size="small" imgSrc="/images/admin/icons/templateForAddPhotoIcon.png"
+                                onImagesChange={(values) => handlePhotoChange(3, values)} />
                         </div>
                     </div>
                     <div className="flex flex-row gap-2 p-4">
-                        <button type="button" className="flex flex-row" onClick={() => handleImageClick(0)}>
+                        <button type="button" className="flex flex-row">
                             <img src={"/images/admin/icons/uploadFromIcon.png"} alt={""} width={24} height={24} />
                             <span className="pl-2">Upload from your computer</span>
                         </button>

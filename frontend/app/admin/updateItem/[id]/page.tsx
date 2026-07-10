@@ -1,6 +1,5 @@
 'use client'
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import React from "react";
 import { useRouter } from "next/navigation";
@@ -8,6 +7,7 @@ import { useLoading } from "@/app/context/LoadingContext";
 import { useAdminHeaderStore } from "@/app/store/adminHeader";
 import { BrandDto, ColorDto, ProductDto } from "@/app/types/dto";
 import { getBrands, getColors, getProduct } from "@/app/api/fetchApi/adminApi";
+import PhotoButton from "../../Components/PhotoBtn";
 
 export default function UpdateItem({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params);
@@ -88,9 +88,7 @@ export default function UpdateItem({ params }: { params: Promise<{ id: string }>
             </div>
             <div className="flex flex-row grad-2">
                 <div className="p-4 w-1/2">
-                    {product && product.imageUrl?.map((url: string, i: number) => (
-                        <img key={i} src={url} alt={`${product.name} ${i + 1}`} className="w-[314px] object-cover rounded" />
-                    ))}
+                    <PhotoButton index={0} size={"small"} imgSrc={product?.imageUrl || []} />
                 </div>
                 <div className="ml-auto p-4 w-full">
                     <div className="flex flex-row grab-2">

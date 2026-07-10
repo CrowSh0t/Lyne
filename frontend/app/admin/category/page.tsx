@@ -5,16 +5,10 @@ import { useAdminHeaderStore } from "@/app/store/adminHeader";
 import { CategoryDto } from "@/app/types/dto";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import BackElement from "../Components/BackToMainPageElem";
 
 const CATEGORIES = [
     'Mass Market', 'Premium Segment', 'Woman', 'Men', 'Kids', 'Accessories', 'House'
-]
-const MOCK_CATEGORIES = [
-    { id: 1, name: 'WOMAN', image: '/images/admin/categories/woman.png', parent: null },
-    { id: 2, name: 'WOMAN / PREMIUM', image: '/images/admin/categories/woman-premium.png', parent: 'WOMAN' },
-    { id: 3, name: 'MEN', image: '/images/admin/categories/men.png', parent: null },
-    { id: 4, name: 'MEN / PREMIUM', image: '/images/admin/categories/men-premium.png', parent: 'MEN' },
-    { id: 5, name: 'KIDS', image: '/images/admin/categories/kids.png', parent: null },
 ]
 
 export default function Category() {
@@ -41,13 +35,19 @@ export default function Category() {
             .finally(() => setLoading(false));
     }, []);
 
+    const handleDelete = async (id: number) => {
+        const res = await fetch(`/api/categories/${id}`, {
+            method: 'DELETE',
+        });
+
+        if (res.ok) {
+            setCategories(prev => prev.filter(c => c.id !== id));
+        }
+    };
+
     return (
         <div>
-            <div className="p-4">
-                <Link href={'/admin/main'}>
-                    <img src={'/images/icons/viewAllBtn.png'} alt={''} className='scale-x-[-1] pt-[36px]' width={47} height={34} />
-                </Link>
-            </div>
+            <BackElement />
             <div className="p-12">
                 <h1 className="text-4xl font-large">Search Category</h1>
                 <div className="flex flex-row pt-2">
@@ -82,11 +82,11 @@ export default function Category() {
                 </div>
                 <div>
                     <div className="divide-y">
-                        {MOCK_CATEGORIES.map(cat => (
+                        {categories.map(cat => (
                             <div key={cat.id} className="flex items-center py-3 px-4 gap-4">
                                 {/* фото */}
                                 <img
-                                    src={cat.image}
+                                    src={cat.imageUrl}
                                     alt={cat.name}
                                     className="w-14 h-14 object-cover"
                                 />
@@ -99,10 +99,10 @@ export default function Category() {
                                 {/* кнопки */}
                                 <div className="flex items-center gap-4 text-gray-400">
                                     <button>▾</button>
-                                    <button>
+                                    <Link href={`/admin/category/${cat.id}`}>
                                         <img src="/images/admin/icons/editIcon.png" alt="edit" width={18} height={18} />
-                                    </button>
-                                    <button>
+                                    </Link>
+                                    <button onClick={() => handleDelete(cat.id)}>
                                         <img src="/images/admin/icons/deleteIcon.png" alt="delete" width={18} height={18} />
                                     </button>
                                 </div>

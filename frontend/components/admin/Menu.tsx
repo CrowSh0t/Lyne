@@ -26,16 +26,16 @@ export default function Menu() {
     return (
         <div>
             <div className='flex grab-2 flex-row justify-top items-top'>
-                <div className="bg-[url('/images/admin/mainMenuBackground.png')] flex flex-col items-center justify-center w-[402px] min-h-screen py-5 border border-[#b0a0d0]">
+                <div className="bg-[url('/images/admin/mainMenuBackground.png')] flex flex-col items-center w-[402px] h-screen sticky top-0 py-5 border border-[#b0a0d0] overflow-hidden">
                     <h1 className="text-[64px]">LYNE</h1>
                     <h3>Concept store</h3>
 
-                    <div className="flex flex-col flex-1 w-full pl-5">
+                    <div className="flex flex-col flex-1 w-full pl-5 justify-evenly overflow-hidden">
                         {MENU_ITEMS.map(({ href, icon, label, w, h }) => (
                             <Link
                                 key={href}
                                 href={href}
-                                className="flex items-center px-6 py-4 cursor-pointer text-base text-[#1a1a1a] no-underline hover:scale-[0.85] transition-transform duration-500 ease-in-out"
+                                className="flex items-center px-6 cursor-pointer text-base text-[#1a1a1a] no-underline hover:scale-[0.85] transition-transform duration-500 ease-in-out"
                             >
                                 <div className={`flex items-center gap-4 ${pathname === href ? 'border-b-2 border-black pb-1 pr-16' : ''}`}>
                                     <Image src={icon} alt="icon" width={w} height={h} />
