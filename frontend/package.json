@@ -10,8 +10,10 @@
     "generate:api-types": "openapi-typescript http://localhost:5097/swagger/v1/swagger.json -o src/api/schema.d.ts"
   },
   "dependencies": {
+    "@radix-ui/react-slider": "^1.4.3",
     "next": "^16.2.4",
     "react": "19.2.4",
+    "react-bootstrap-range-slider": "^3.0.8",
     "react-dom": "19.2.4",
     "zustand": "^5.0.14"
   },
