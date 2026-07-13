@@ -45,7 +45,9 @@ namespace Infrastructure.Services
             var user = new User
             {
                 Email = registerDto.Email,
-                UserName = registerDto.Login ?? registerDto.Email
+                UserName = registerDto.Login ?? registerDto.Email,
+                Country = registerDto.Country,              // ← Додай
+                Name = registerDto.Login ?? registerDto.Email,  // ← Додай
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);

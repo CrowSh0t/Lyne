@@ -8,6 +8,7 @@ using Application.Contracts.Size;
 using Domains.Entities;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,12 +21,116 @@ namespace LyneBg.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AdminController> _logger;
+        private readonly UserManager<User> _userManager;        // ← Додай
+        private readonly RoleManager<IdentityRole> _roleManager; // ← Додай
 
-        public AdminController(ApplicationDbContext context, ILogger<AdminController> logger)
+        public AdminController(
+            ApplicationDbContext context,
+            ILogger<AdminController> logger,
+            UserManager<User> userManager,        // ← Додай
+            RoleManager<IdentityRole> roleManager) // ← Додай
         {
             _context = context;
             _logger = logger;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
+
+        public class CreateAdminDto
+        {
+            public required string Email { get; set; }
+            public required string Password { get; set; }
+            public string? UserName { get; set; }
+            public string? Name { get; set; }
+            public string? Country { get; set; }
+            public string? PhoneNumber { get; set; }
+        }
+
+        [HttpPost("admins")]
+        public async Task<ActionResult> CreateAdmin([FromBody] CreateAdminDto dto)
+        {
+            var user = new User
+            {
+                Email = dto.Email,
+                UserName = dto.UserName ?? dto.Email,
+                Name = dto.Name ?? dto.Email,
+                Country = dto.Country ?? "Ukraine",
+                EmailConfirmed = true,
+                PhoneNumber = dto.PhoneNumber
+            };
+
+            var result = await _userManager.CreateAsync(user, dto.Password);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return BadRequest(new { message = errors });
+            }
+
+            // Додаємо роль Admin
+            if (!await _roleManager.RoleExistsAsync("Admin"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+            await _userManager.AddToRoleAsync(user, "Admin");
+
+            return Ok(new
+            {
+                message = $"Admin {user.Email} created successfully",
+                userId = user.Id,
+                email = user.Email
+            });
+        }
+
+        [HttpPut("users/{userId}/make-admin")]
+        public async Task<ActionResult> MakeAdmin(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            if (!await _roleManager.RoleExistsAsync("Admin"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+
+            if (await _userManager.IsInRoleAsync(user, "Admin"))
+                return Ok(new { message = $"User {user.Email} is already admin" });
+
+            var result = await _userManager.AddToRoleAsync(user, "Admin");
+            if (result.Succeeded)
+                return Ok(new { message = $"User {user.Email} is now admin" });
+
+            return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
+        }
+
+        [HttpPut("users/{userId}/remove-admin")]
+        public async Task<ActionResult> RemoveAdmin(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            var result = await _userManager.RemoveFromRoleAsync(user, "Admin");
+            if (result.Succeeded)
+                return Ok(new { message = $"Admin role removed from {user.Email}" });
+
+            return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
+        }
+
+        [HttpGet("admins")]
+        public async Task<ActionResult> GetAllAdmins()
+        {
+            var admins = await _userManager.GetUsersInRoleAsync("Admin");
+            var result = admins.Select(u => new
+            {
+                u.Id,
+                u.Email,
+                u.UserName,
+                u.PhoneNumber
+            });
+            return Ok(result);
+        }
+
 
 
         [HttpGet("dashboard")]
