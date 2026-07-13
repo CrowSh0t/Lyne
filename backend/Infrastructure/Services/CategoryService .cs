@@ -11,13 +11,13 @@ namespace Infrastructure.Services
     {
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
-        private readonly IProductRepository _productRepository; 
+        private readonly IProductRepository _productRepository;
 
         public CategoryService(ICategoryRepository categoryRepository, IProductRepository productRepository, IMapper mapper)
         {
             _categoryRepository = categoryRepository;
             _mapper = mapper;
-            _productRepository = productRepository; 
+            _productRepository = productRepository;
         }
 
         public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
@@ -76,6 +76,18 @@ namespace Infrastructure.Services
         {
             var categories = await _categoryRepository.GetCategoriesByIdsAsync(categoryIds);
             return _mapper.Map<IEnumerable<CategoryDto>>(categories);
+        }
+
+        public async Task<CategoryDto> UpdateImageUrlCategoryAsync(int id, string ImageUrl)
+        {
+            var existingCategory = await _categoryRepository.GetByIdAsync(id);
+            if (existingCategory == null)
+                throw new KeyNotFoundException($"Category with ID {id} not found");
+
+            existingCategory.ImageUrl = ImageUrl;
+            var updatedImageUrl = await _categoryRepository.UpdateAsync(existingCategory);
+
+            return _mapper.Map<CategoryDto>(updatedImageUrl);
         }
     }
 }

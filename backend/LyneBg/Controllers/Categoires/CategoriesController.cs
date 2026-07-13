@@ -90,6 +90,27 @@ namespace LyneBg.Controllers.Categoires
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpPut("{id}/image")]
+        public async Task<ActionResult<CategoryDto>> UpdateImageUrl(int id, [FromBody] string ImageUrl) 
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var updatedCategory = await _categoryService.UpdateImageUrlCategoryAsync(id, ImageUrl);
+                return Ok(updatedCategory);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError(ex, $"Error updating category with id {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)

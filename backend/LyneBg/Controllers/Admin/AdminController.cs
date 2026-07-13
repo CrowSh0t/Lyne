@@ -353,6 +353,34 @@ namespace LyneBg.Controllers
             return NoContent();
         }
 
+        [HttpPut("{id}/image")]
+        public async Task<ActionResult<CategoryDto>> UpdateImageUrl(int id, [FromBody] string ImageUrl)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var existingCategory = await _context.Categories.FindAsync(id);
+                if (existingCategory == null)
+                    throw new KeyNotFoundException($"Category with ID {id} not found");
+
+                existingCategory.ImageUrl = ImageUrl;
+                var updatedImageUrl = await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating category with id {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
 
         [HttpGet("brands")]
         public async Task<ActionResult> GetAllBrandsAdmin()
