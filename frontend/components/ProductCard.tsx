@@ -1,4 +1,4 @@
-import { ProductDto } from "@/app/types/dto";
+import { ProductDto } from "@/src/app/types/dto";
 import Image from "next/image";
 
 // Картка товару
