@@ -31,6 +31,21 @@ namespace LyneBg.Controllers.Categoires
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpGet("ParentCategory")]
+
+        public async Task<ActionResult> GetAllParentsCategoriesAsync()
+        {
+            try
+            {
+                var categories = await _categoryService.GetAllParentsCategoriesAsync();
+                return Ok(categories);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all categories");
+                return StatusCode(500, "Internal server error");
+            }
+        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<CategoryDto>> GetById(int id)
@@ -91,7 +106,7 @@ namespace LyneBg.Controllers.Categoires
             }
         }
         [HttpPut("{id}/image")]
-        public async Task<ActionResult<CategoryDto>> UpdateImageUrl(int id, [FromBody] string ImageUrl) 
+        public async Task<ActionResult<CategoryDto>> UpdateImageUrl(int id, [FromBody] string ImageUrl)
         {
             try
             {
@@ -105,12 +120,15 @@ namespace LyneBg.Controllers.Categoires
             {
                 return NotFound(ex.Message);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error updating category with id {id}");
                 return StatusCode(500, "Internal server error");
             }
         }
+
+
+
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)

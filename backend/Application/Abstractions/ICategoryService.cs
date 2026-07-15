@@ -12,5 +12,9 @@ namespace Application.Abstractions
         Task<bool> DeleteCategoryAsync(int id);
         Task<IEnumerable<CategoryDto>> GetCategoriesByIdsAsync(List<int> categoryIds);
         Task<CategoryDto> UpdateImageUrlCategoryAsync(int id, string newImageUrl);
+
+        Task<IEnumerable<CategoryDto>> GetAllParentsCategoriesAsync();
+
+       
     }
 }

@@ -37,11 +37,23 @@ namespace Infrastructure.Services
 
         public async Task<CategoryDto> CreateCategoryAsync(CreateCategoryDto createCategoryDto)
         {
-            var category = _mapper.Map<Category>(createCategoryDto);
+            
 
+            if (createCategoryDto.ParentCategoryId != null)
+            {
+                var parent = await _categoryRepository
+                    .GetByIdAsync(createCategoryDto.ParentCategoryId.Value);
+
+                if (parent == null)
+                    throw new KeyNotFoundException("Parent category not found");
+            }
+          
+            var category = _mapper.Map<Category>(createCategoryDto);
+            
             if (createCategoryDto.ProductsId?.Any() == true)
             {
-                var products = await _productRepository.GetProductsByIdsAsync(createCategoryDto.ProductsId);
+                var products = await _productRepository
+                    .GetProductsByIdsAsync(createCategoryDto.ProductsId);
 
                 if (products.Any())
                 {
@@ -55,6 +67,10 @@ namespace Infrastructure.Services
 
         public async Task<CategoryDto> UpdateCategoryAsync(int id, UpdateCategoryDto updateCategoryDto)
         {
+            if (updateCategoryDto.ParentCategoryID == id)
+            {
+                throw new ArgumentException("Category cannot be its own parent.");
+            }
             var existingCategory = await _categoryRepository.GetByIdAsync(id);
             if (existingCategory == null)
                 throw new KeyNotFoundException($"Category with ID {id} not found");
@@ -88,6 +104,15 @@ namespace Infrastructure.Services
             var updatedImageUrl = await _categoryRepository.UpdateAsync(existingCategory);
 
             return _mapper.Map<CategoryDto>(updatedImageUrl);
+        }
+
+        public async Task<IEnumerable<CategoryDto>> GetAllParentsCategoriesAsync()
+        {
+            
+            var categories = await _categoryRepository.GetAllAsync();
+            var parentsCategory = categories
+                .Select(i => i.ParentCategory);
+            return _mapper.Map<IEnumerable<CategoryDto>>(parentsCategory);
         }
     }
 }
