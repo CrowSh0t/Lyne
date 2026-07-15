@@ -82,5 +82,11 @@ namespace Infrastructure.Repositories
         {
             return await _context.Products.AnyAsync(p => p.Id == id);
         }
+
+        public async Task<bool> ProductCodeExistsAsync(string productCode)
+        {
+            return await _context.Products
+                .AnyAsync(i => i.ProductCode == productCode);
+       }
     }
 }

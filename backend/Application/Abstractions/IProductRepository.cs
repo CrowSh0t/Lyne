@@ -18,6 +18,7 @@ namespace Application.Abstractions
         Task<IEnumerable<Products>> GetByBrandIdAsync(int brandId);
         Task<bool> ExistsAsync(int id);
         Task<IEnumerable<Products>> GetProductsByIdsAsync(List<int> productIds);
+        Task<bool> ProductCodeExistsAsync(string productCode);
 
     }
 }

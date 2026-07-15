@@ -39,7 +39,18 @@ namespace Infrastructure.Services
 
         public async Task<ProductDto> CreateProductAsync(CreateProductDto createProductDto)
         {
+            string productCode;
+
+            do
+            {
+                productCode = GenerateProductCode();
+            }
+            while (await _productRepository.ProductCodeExistsAsync(productCode));
+
+           
+
             var product = _mapper.Map<Products>(createProductDto);
+            product.ProductCode = productCode;
             var createdProduct = await _productRepository.AddAsync(product);
             return _mapper.Map<ProductDto>(createdProduct);
         }
@@ -73,6 +84,10 @@ namespace Infrastructure.Services
         {
             var products = await _productRepository.GetByBrandIdAsync(brandId);
             return _mapper.Map<IEnumerable<ProductDto>>(products);
+        }
+        private string GenerateProductCode()
+        {
+            return Guid.NewGuid().ToString("N")[..10].ToUpper();
         }
     }
 }
