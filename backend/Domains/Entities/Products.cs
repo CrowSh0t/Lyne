@@ -17,7 +17,7 @@ namespace Domains.Entities
         public Color Color { get; set; }
         public int SizeId { get; set; }
         public Size Size { get; set; }
-
+        public ICollection<Selling> Sellings { get; set; } = new List<Selling>();
         public string? Composition { get; set; }
         public required List<int> CategoriesId { get; set; }
         public List<int>? MatchProductsId { get; set; }

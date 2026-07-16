@@ -14,6 +14,7 @@ namespace Infrastructure.Persistence
         public DbSet<Color> Colors { get; set; }
         public DbSet<Size> Sizes { get; set; }
         public DbSet<Discount> Discounts { get; set; }
+        public DbSet<Selling> Sellings { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<CartItem> CartItems { get; set; }

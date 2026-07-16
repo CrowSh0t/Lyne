@@ -103,6 +103,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ISellingRepository, SellingRepository>();
 
 // Services
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -110,6 +111,8 @@ builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ISellingService, SellingService>();
+
 builder.Services.AddScoped<JwtTokenFactory>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
