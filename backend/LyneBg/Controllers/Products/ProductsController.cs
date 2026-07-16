@@ -155,7 +155,11 @@ namespace LyneBg.Controllers.Products
             try
             {
                 // Спочатку отримуємо всі продукти з бази
-                var products = await _context.Products.ToListAsync();
+                var products = await _context.Products
+                .AsNoTracking()
+                .Include(p => p.Color)
+                .Include(p => p.Size)
+                .ToListAsync();
 
                 // Групуємо в пам'яті
                 var grouped = products
@@ -164,8 +168,8 @@ namespace LyneBg.Controllers.Products
                     {
                         Name = g.Key,
                         TotalCount = g.Count(),
-                        AvailableColors = g.Select(p => p.Color.ToString()).Distinct().ToList(),
-                        AvailableSizes = g.Select(p => p.Size.ToString()).Distinct().ToList(),
+                        AvailableColors = g.Where(p => p.Color != null).Select(p => p.Color!.Name).Distinct().ToList(),
+                        AvailableSizes = g.Where(p => p.Size != null).Select(p => p.Size!.Name).Distinct().ToList(),
                         PriceMin = g.Min(p => p.Price),
                         PriceMax = g.Max(p => p.Price)
                     })
