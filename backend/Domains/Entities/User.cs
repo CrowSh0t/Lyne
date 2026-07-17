@@ -8,8 +8,10 @@ namespace Domains.Entities
         public string Name { get; set; }
 
         public DateTime Dob { get; set; }
-
-        public string Country { get; set; }
+        public string? Avatar { get; set; }
+        public string? Country { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string Status { get; set; } = "Active";
 
         public string Role { get; set; } = "User";
     }

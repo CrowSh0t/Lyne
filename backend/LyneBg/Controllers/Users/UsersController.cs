@@ -71,5 +71,27 @@ namespace LyneBg.Controllers.Users
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpPut("{id}")]
+        public async Task<ActionResult<UserDto>> UpdateUserAsync(string id, [FromBody] UpdateUserProfileDto updateUserProfileDto) 
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var user = await _userService.UpdateUserAsync(id, updateUserProfileDto);
+                return Ok(user);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+                
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError(ex, $"Error deliting User with ID {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }

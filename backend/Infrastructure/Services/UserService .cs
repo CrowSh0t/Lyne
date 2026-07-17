@@ -30,7 +30,10 @@ namespace Infrastructure.Services
                     UserName = user.UserName,
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
-                    Roles = roles.ToList()
+                    Roles = roles.ToList(),
+                    Avatar = user.Avatar,
+                    Country = user.Country,
+                    status = user.Status,
                 });
             }
 
@@ -51,7 +54,10 @@ namespace Infrastructure.Services
                 UserName = user.UserName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                Roles = roles.ToList()
+                Roles = roles.ToList(),
+                Avatar = user.Avatar,
+                Country = user.Country,
+                status = user.Status,
             };
         }
 
@@ -63,6 +69,36 @@ namespace Infrastructure.Services
 
             var result = await _userManager.DeleteAsync(user);
             return result.Succeeded;
+        }
+        public async Task<UserDto> UpdateUserAsync(string id, UpdateUserProfileDto updateUserProfileDto) 
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) 
+            {
+                throw new KeyNotFoundException($"User with ID {id} not found");
+            }
+            user.Avatar = updateUserProfileDto.Avatar;
+            user.Country = updateUserProfileDto.Country;
+            user.Status = updateUserProfileDto.Status;
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                throw new Exception("Failed to update user");
+            }
+            var roles = await _userManager.GetRolesAsync(user);
+            return new UserDto()
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Roles = roles.ToList(),
+                Avatar = user.Avatar,
+                Country = user.Country,
+                status = user.Status,
+            };
+            
         }
     }
 }
