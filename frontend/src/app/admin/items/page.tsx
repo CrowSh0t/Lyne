@@ -100,7 +100,6 @@ export default function Items() {
         });
 
         if (res.ok) {
-            // оновити стан, наприклад прибрати товар зі списку
             setProducts(prev => prev.filter(p => p.id !== id));
         }
     };

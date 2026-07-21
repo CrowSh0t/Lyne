@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import BackElement from "../Components/BackToMainPageElem";
 import type { components } from "@/src/app/api/schema";
 import {getCategories} from "@/src/app/api/fetchApi/admin";
+import UniversalCreateModal from "../Components/CreateWindow";
 
 type CategoryDto = components["schemas"]["CategoryDto"];
 
@@ -18,7 +19,36 @@ export default function Category() {
     const setRightContent = useAdminHeaderStore(s => s.setRightContent)
     const [selected, setSelected] = useState<string[]>([])
     const [categories, setCategories] = useState<CategoryDto[]>([])
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalType, setModalType] = useState<'categories'>('categories');
     const { setLoading } = useLoading();
+
+    const handleCreateItem = async (name: string) => {
+        try {
+            const response = await fetch(`/api/${modalType}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Помилка при створенні: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(`${modalType} успішно створено:`, data);
+            window.location.reload();
+        } catch (error) {
+            console.error(`Не вдалося створити ${modalType}:`, error);
+        }
+    };
+
+    const openModalFor = (type: 'categories') => {
+        setModalType(type);
+        setModalOpen(true);
+    };
 
 
     useEffect(() => {
@@ -55,7 +85,8 @@ export default function Category() {
                 <h1 className="text-4xl font-large">Search Category</h1>
                 <div className="flex flex-row pt-2">
                     <input className="w-full bg-gray-100 border-none outline-none px-3 py-2 rounded" />
-                    <button className="bg-black flex justify-center items-center py-3 text-white w-1/3 text-2xl mt-auto rounded-lg">
+                    <button className="bg-black flex justify-center items-center py-3 text-white w-1/3 text-2xl mt-auto rounded-lg"
+                    onClick={() => openModalFor('categories')}>
                         Add the Category
                     </button>
                 </div>
@@ -105,7 +136,7 @@ export default function Category() {
                                     <Link href={`/admin/category/${cat.id}`}>
                                         <img src="/images/admin/icons/editIcon.png" alt="edit" width={18} height={18} />
                                     </Link>
-                                    <button onClick={() => handleDelete(cat.id || 0)}>
+                                    <button onClick={() =>handleDelete(cat.id || 0)}>
                                         <img src="/images/admin/icons/deleteIcon.png" alt="delete" width={18} height={18} />
                                     </button>
                                 </div>
@@ -114,6 +145,12 @@ export default function Category() {
                     </div>
                 </div>
             </div>
+            <UniversalCreateModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                elementType={modalType}
+                onConfirm={handleCreateItem}
+            />
         </div>
     )
 }

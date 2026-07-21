@@ -13,7 +13,6 @@ export async function POST(req: NextRequest) {
 
   const response = NextResponse.json(data, { status: res.status });
 
-  // Пробрасуємо cookie з беку на фронт
   const setCookie = res.headers.get('set-cookie');
   if (setCookie) {
     response.headers.set('set-cookie', setCookie);

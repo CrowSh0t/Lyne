@@ -2,8 +2,15 @@ import { useRef, useState } from "react"
 
 export interface PhotoSlotValue {
     file: File | null
-    url: string | null // якщо картинка вставлена через URL (а не файл)
+    url: string | null
 }
+
+const uploadFileToServer = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return URL.createObjectURL(file);
+};
 
 export default function PhotoButton({
     index,

@@ -14,6 +14,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }
+
+
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await req.json();

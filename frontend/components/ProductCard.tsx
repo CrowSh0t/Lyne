@@ -1,5 +1,6 @@
-import { ProductDto } from "@/src/app/types/dto";
-import Image from "next/image";
+import { components } from "@/src/app/api/schema";
+
+type ProductDto = components["schemas"]["ProductDto"]
 
 // Картка товару
 export default function ProductCard({ product, brandName }: { product: ProductDto; brandName: string }) {
@@ -12,7 +13,7 @@ export default function ProductCard({ product, brandName }: { product: ProductDt
       </div>
       <div className="bg-gray-100 rounded-lg flex items-center justify-center h-48 mb-3">
         {product.imageUrl?.[0] ? (
-          <img src={product.imageUrl[0]} alt={product.name} width={150} height={150} className="object-contain" />
+          <img src={product.imageUrl[0]} width={150} height={150} className="object-contain" />
         ) : (
           <div className="w-[150px] h-[150px] bg-gray-200 rounded" />
         )}

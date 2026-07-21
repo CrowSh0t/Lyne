@@ -1,5 +1,11 @@
 'use client';
-import { useEffect, useState } from 'react';
+import {useEffect, useState } from 'react';
+import { components } from '../api/schema';
+import { useLoading } from '../context/LoadingContext';
+import { getOrders } from '../api/fetchApi/admin';
+import ProductCard from '@/components/ProductCard';
+
+type OrderDto = components["schemas"]["OrderDto"]
 
 export default function MyAccountPage() {
     const [name, setName] = useState('');
@@ -7,6 +13,8 @@ export default function MyAccountPage() {
     const [password, setPassword] = useState('serpasswork123');
     const [country, setCountry] = useState('');
     const [editingPass, setEditingPass] = useState(false);
+    const [orders, setOrders] = useState<OrderDto[]>();
+    const {setLoading} = useLoading();
 
 
     useEffect(() => {
@@ -26,9 +34,18 @@ export default function MyAccountPage() {
 
     const backgrounds: Record<Tab, string> = {
         account: '/images/userAccount/backgroundForMyAccoutPage.png',
-        orders: '/images/userAccount/backgroundForOrders.png',
+        orders: '/images/userAccount/BackgroundMyOrder.jpg',
         contact: '/images/userAccount/backgroundForContact.png',
     }
+
+    useEffect(()=>{
+        setLoading(true);
+        Promise.all([
+            getOrders()
+        ]).then(([ordersData]: [OrderDto[]]) => {
+            //setOrders(ordersData)
+        }).finally(() => setLoading(false));
+    },[])
 
     return (
         <div className='p-[48px] h-screen bg-[#D2D2D2]'>
@@ -40,7 +57,7 @@ export default function MyAccountPage() {
                 }}
             />
             <div className='relative z-10'>
-                <h1 className="text-2xl font-medium mb-4">Hello, {name}</h1>
+                <h1 className="text-2xl font-medium mb-4 pt-[48px]">Hello, {name}</h1>
 
                 {/* Таби */}
                 <div className="p-[16px] flex flex-row items-center gap-6">
@@ -81,7 +98,7 @@ export default function MyAccountPage() {
                                     value={password}
                                     readOnly={!editingPass}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="input bg-[#F9F9F9] w-[701] h-[50] br-[3]"
+                                    className="input bg-[#F9F9F9] w-[701px] h-[50px] br-[3]"
                                 />
                                 <button onClick={() => setEditingPass(!editingPass)}>
                                     {editingPass ? "✓" : "✏️"}
@@ -119,21 +136,23 @@ export default function MyAccountPage() {
                             </div>
                         </div>
                     )}
-
                     {activeTab === 'orders' && (
                         <div>
-                            <h2 className="font-medium mb-3">My orders</h2>
-                            {/* список замовлень */}
+                            <div className="field pt-[5px]">
+                                {orders?.map(o =>(
+                                    <div>
+                                        {o.items?.map(i =>(
+                                            <div>
+                                                <h3>{i.productName}</h3>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                                <h3>OOPS, you don’t have any orders for now</h3>
+                            </div>
+                            
                         </div>
                     )}
-
-                    {activeTab === 'contact' && (
-                        <div>
-                            <h2 className="font-medium mb-3">Contact us</h2>
-                            {/* форма контакту */}
-                        </div>
-                    )}
-
                 </div>
             </div>
         </div>

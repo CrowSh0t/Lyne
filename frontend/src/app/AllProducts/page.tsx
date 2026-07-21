@@ -41,12 +41,12 @@ export default function GridToggle() {
             getSizes(),
             getColors(),
             getCategories()
-        ]).then(([productsData, brandsData, sizesData, colorsData,categoyData]: [ProductDto[], BrandDto[], SizeDto[],ColorDto[],CategoryDto[]]) => {
+        ]).then(([productsData, brandsData, sizesData, colorsData,categoryData]: [ProductDto[], BrandDto[], SizeDto[],ColorDto[],CategoryDto[]]) => {
             setProducts(productsData);
             setBrands(brandsData);
             setSizes(sizesData);
             setColors(colorsData);
-            setCategories(categoyData);
+            setCategories(categoryData);
         }).finally(() => setLoading(false));
     }, [])
 
@@ -128,7 +128,7 @@ export default function GridToggle() {
                             </div>
                             {activeFilter === 'category' && (
                                 <div className="py-6 flex flex-wrap gap-2 animate-fadeIn bg-white">
-                                    {brands.map((category, idx) => (
+                                    {categories.map((category, idx) => (
                                         <button
                                             key={idx}
                                             className="px-4 py-2 bg-[#F9F9F9] hover:bg-gray-200 text-xs text-gray-800 font-light transition-colors duration-150"

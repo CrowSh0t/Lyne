@@ -5,24 +5,35 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { useLoading } from "@/src/app/context/LoadingContext";
 import { useAdminHeaderStore } from "@/src/app/store/adminHeader";
-import PhotoButton from "../../Components/PhotoBtn";
+import PhotoButton, { PhotoSlotValue } from "../../Components/PhotoBtn";
 import type { components } from "@/src/app/api/schema";
-import { getBrands, getColors, getProduct} from "@/src/app/api/fetchApi/admin";
+import { getBrands, getColors, getCategories, getProduct} from "@/src/app/api/fetchApi/admin";
 
 type BrandDto = components["schemas"]["BrandDto"];
 type ColorDto = components["schemas"]["ColorDto"];
 type ProductDto = components["schemas"]["ProductDto"];
+type CategoryDto = components["schemas"]["CategoryDto"];
 
 export default function UpdateItem({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params);
     const router = useRouter();
     const [product, setProduct] = useState<ProductDto | null>(null);
     const [formData, setFormData] = useState<Partial<ProductDto>>({});
+    const [categories, setCategories] = useState<CategoryDto[]>([]);
     const [brands, setBrands] = useState<BrandDto[]>([]);
     const [colors, setColors] = useState<ColorDto[]>([]);
+    const [photoSlots, setPhotoSlots] = useState<(PhotoSlotValue | undefined)[]>([])
     const { setLoading } = useLoading();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+
+    const uploadFileToServer = async (file: File): Promise<string> => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        return URL.createObjectURL(file);
+    };
 
     useEffect(() => {
         if (!id) {
@@ -37,13 +48,15 @@ export default function UpdateItem({ params }: { params: Promise<{ id: string }>
         Promise.all([
             getColors(),
             getProduct(id),
-            getBrands()
+            getBrands(),
+            getCategories()
         ])
-            .then(([colorsData, productData, brandsData]) => {
+            .then(([colorsData, productData, brandsData, categoriesData]) => {
                 setColors(colorsData);
                 setProduct(productData);
                 setFormData(productData);
                 setBrands(brandsData);
+                setCategories(categoriesData);
             })
             .catch((error) => console.error("Помилка:", error))
             .finally(() => setLoading(false));
@@ -58,15 +71,47 @@ export default function UpdateItem({ params }: { params: Promise<{ id: string }>
         )
     }, [])
 
+    const handleCategoryChange = (catId: number, isChecked: boolean) => {
+    setFormData(prev => {
+        const currentIds = prev.categoriesId || [];
+        if (isChecked) {
+            return { ...prev, categoriesId: [...currentIds, catId] };
+        } else {
+            return { ...prev, categoriesId: currentIds.filter(cid => cid !== catId) };
+        }
+    });
+};
+
+    const handlePhotoChange = (slotIndex: number, values: PhotoSlotValue[]) => {
+        setPhotoSlots(prev => {
+            const newSlots = [...prev]
+            newSlots[slotIndex] = values[0]
+            return newSlots
+        })
+    }
+
     const handleUpdate = async () => {
         setIsSubmitting(true);
+
         try {
+            const uploadedUrls: string[] = [];
+            for (const slot of photoSlots) {
+                if (!slot) continue;
+                if (slot.file) {
+                    const url = await uploadFileToServer(slot.file);
+                    uploadedUrls.push(url);
+                } else if (slot.url) {
+                    uploadedUrls.push(slot.url);
+                }
+            }
             const res = await fetch(`/api/products/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({...formData,
+                    imageURl:uploadedUrls.length ? uploadedUrls : formData.imageUrl,
+                }),
             });
 
             if (res.ok) {
@@ -92,7 +137,9 @@ export default function UpdateItem({ params }: { params: Promise<{ id: string }>
             </div>
             <div className="flex flex-row grad-2">
                 <div className="p-4 w-1/2">
-                    <PhotoButton index={0} size={"small"} imgSrc={product?.imageUrl || []} />
+                {product?.imageUrl?.map((img,i) =>(
+                    <PhotoButton index={i} key={i} size={"small"} imgSrc={img} onImagesChange={(values) => handlePhotoChange(i,values)}/>
+                ))}
                 </div>
                 <div className="ml-auto p-4 w-full">
                     <div className="flex flex-row grab-2">
@@ -142,6 +189,34 @@ export default function UpdateItem({ params }: { params: Promise<{ id: string }>
                                 ))}
                             </select>
                             <span className="absolute right-3 pointer-events-none text-sm">▾</span>
+                        </div>
+                        <div>
+                            <h2>Category</h2>
+                            <div className="grid grid-cols-2 gap-2 bg-gray-100 p-3 rounded max-h-40 overflow-y-auto">
+                                {categories.map(c => {
+                                    const isChecked = formData.categoriesId?.includes(c.id || 0) || false;
+                                    return (
+                                        <label key={c.id} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-200 rounded transition-colors">
+                                            <input
+                                                type="checkbox"
+                                                checked={isChecked}
+                                                onChange={(e) => handleCategoryChange(c.id || 0, e.target.checked)}
+                                                className="hidden"
+                                            />
+                                            <div className={`w-5 h-5 rounded-sm flex items-center justify-center transition-colors
+                        ${isChecked ? 'bg-black/50' : 'bg-white border border-gray-300'}`}
+                                            >
+                                                {isChecked && (
+                                                    <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+                                                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                    </svg>
+                                                )}
+                                            </div>
+                                            {c.name}
+                                        </label>
+                                    );
+                                })}
+                            </div>
                         </div>
                         <div>
                             <h2>Quantity</h2>
