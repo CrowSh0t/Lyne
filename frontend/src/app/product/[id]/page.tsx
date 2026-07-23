@@ -1,20 +1,47 @@
 'use client';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import Image from 'next/image';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import React from 'react';
-import ProductCard from '@/components/ProductCard';
+import SmallProductCard from '@/components/SmallProductCard';
 import Link from 'next/link';
 import { useLoading } from '@/src/app/context/LoadingContext';
 import type { components } from "@/src/app/api/schema";
+import { getBrand, getCategories, getColors, getProduct, getProductByName, getSizes } from '../../api/fetchApi/admin';
+import AddedToBagModal from '@/components/AddedToBagModal';
+
+
+
 
 type ProductDto = components["schemas"]["ProductDto"];
+type BrandDto = components["schemas"]["BrandDto"]
+type ColorDto = components["schemas"]["ColorDto"]
+type SizeDto = components["schemas"]["SizeDto"]
+
+// Форма відповіді нового бекенд-ендпоінту GET /api/products/stats/{name}
+interface ProductStatsVariant {
+    id?: number;
+    size: string | null;
+    color: string | null;
+    count: number;
+    price: number;
+}
+interface ProductStatsDto {
+    name: string;
+    totalCount: number;
+    availableColors: string[];
+    availableSizes: string[];
+    priceRange: { min: number; max: number };
+    variants: ProductStatsVariant[];
+}
+
 
 const DURATION = 3000;
 
 // Для Select size
-function SizeSelector({ sizes, selected, onSelect }: {
+// Кожен size тепер може бути заблокований (немає в наявності для обраного кольору)
+function SizeSelector({ sizes, selected, disabledSizes, onSelect }: {
     sizes: string[];
     selected: string | null;
+    disabledSizes: string[];
     onSelect: (s: string) => void;
 }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -29,16 +56,20 @@ function SizeSelector({ sizes, selected, onSelect }: {
             </button>
             {isOpen && (
                 <div className='flex flex-col pb-2'>
-                    {sizes.map((size) => (
-                        <button
-                            key={size}
-                            onClick={() => { onSelect(size); setIsOpen(false); }}
-                            className='flex items-center justify-between py-3 text-sm w-full'
-                        >
-                            <span>{size}</span>
-                            {(selected ?? sizes[0]) === size && <span>✓</span>}
-                        </button>
-                    ))}
+                    {sizes.map((size) => {
+                        const isDisabled = disabledSizes.includes(size);
+                        return (
+                            <button
+                                key={size}
+                                disabled={isDisabled}
+                                onClick={() => { if (!isDisabled) { onSelect(size); setIsOpen(false); } }}
+                                className={`flex items-center justify-between py-3 text-sm w-full ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
+                            >
+                                <span>{size}</span>
+                                {(selected ?? sizes[0]) === size && <span>✓</span>}
+                            </button>
+                        );
+                    })}
                 </div>
             )}
         </div>
@@ -62,36 +93,14 @@ function AccordionItem({ title, children }: { title: string; children: React.Rea
     );
 }
 
-// 1. Окремий тип для статистики (можна винести в types/dto.ts поруч з ProductDto)
-interface ProductStats {
-    availableColors: string[];
-    availableSizes: string[];
-}
-
 export default function ItemById({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params);
-    const [product, setProduct] = useState<ProductDto | null>(null);
-    const [stats, setStats] = useState<ProductStats>({ availableColors: [], availableSizes: [] });
-    // ...решта стейтів без змін
 
-    //fetch кольорів та розмірів
-    useEffect(() => {
-        setLoading(true);
-        const fetchData = async () => {
-            const [productRes, statsRes] = await Promise.all([
-                fetch(`/api/products/${id}`).then(r => r.json()),
-                fetch(`/api/Products/stats/all-grouped`).then(r => r.json()),
-            ]);
-            const matchedStats = statsRes.find((s: any) => s.name === productRes.name);
-            setProduct(productRes);
-            setStats({
-                availableColors: matchedStats?.availableColors ?? [],
-                availableSizes: matchedStats?.availableSizes ?? [],
-            });
-        };
-        fetchData().finally(() => setLoading(false));
-    }, [id]);
-    const [brands, setBrands] = useState<Record<number, string>>({});
+    // product - конкретний товар (colorName+sizeName), відкритий за id з url
+    const [product, setProduct] = useState<ProductDto>();
+    // stats - агрегована інфа по всіх товарах з таким же name (усі колір/розмір комбінації)
+    const [stats, setStats] = useState<ProductStatsDto | null>(null);
+    const [brand, setBrand] = useState<BrandDto>();
     const [current, setCurrent] = useState(0);
     const [progress, setProgress] = useState(0);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -100,50 +109,152 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
     const [isFavorite, setIsFavorite] = useState(false);
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
-    const colorMap: Record<string, string> = {
-        Yellow: '#FFD700',
-        White: '#FFFFFF',
-        Blue: '#365896',
-        Pink: '#CCAAC8',
-        Black: '#000000',
-        Red: '#FF0000',
-        // додай інші кольори за потребою
-    };
     const [matchProducts, setMatchProducts] = useState<ProductDto[]>([]);
+    const [colors, setColors] = useState<ColorDto[]>([]);
+    const [sizes, setSizes] = useState<SizeDto[]>([]);
+    const [variantImages, setVariantImages] = useState<Record<number, string[]>>({});
+    const [bagItems, setBagItems] = useState<ProductDto[] | null>(null);
     const { setLoading } = useLoading();
-    const images = product?.imageUrl ?? [];
 
-    //fetch товарів які мечаться
+    // 1. Завантажуємо базовий товар за id
+    useEffect(() => {
+        setLoading(true);
+        getProduct(id)
+            .then((productData) => {
+                setProduct(productData);
+                if (productData.id != null && productData.imageUrl?.length) {
+                    setVariantImages(prev => ({ ...prev, [productData.id as number]: productData.imageUrl as string[] }));
+                }
+            })
+            .finally(() => setLoading(false));
+    }, [id]);
+
+    const variants = stats?.variants ?? [];
+
+    // Синхронізуємо обраний колір/розмір з товаром, який реально відкрили за id.
+    // Беремо дані з variants (де вони гарантовано коректні), а не з product.colorName/.sizeName,
+    // бо ті можуть бути null якщо бекенд не підвантажив Color/Size navigation properties
+    useEffect(() => {
+        if (!product) return;
+        const matchingVariant = variants.find(v => v.id === product.id);
+        if (matchingVariant) {
+            setSelectedColor(matchingVariant.color);
+            setSelectedSize(matchingVariant.size);
+        } else {
+            // variants ще не завантажились (або товар унікальний) - фолбек на сам product
+            setSelectedColor(product.colorName ?? null);
+            setSelectedSize(product.sizeName ?? null);
+        }
+    }, [product?.id, variants]);
+
+    // 2. Коли знаємо name товару - тягнемо агреговану статистику (усі кольори/розміри з тим самим name)
+    useEffect(() => {
+        if (!product?.name) return;
+        setLoading(true);
+        getProductByName(encodeURIComponent(product.name))
+            .then((data) => {
+                const statsData = data as unknown as ProductStatsDto;
+                setStats(statsData);
+            })
+            .catch(() => {
+                // Якщо запит не вдався - товар унікальний, показуємо тільки його власні дані
+                setStats({
+                    name: product.name ?? '',
+                    totalCount: 1,
+                    availableColors: product.colorName ? [product.colorName] : [],
+                    availableSizes: product.sizeName ? [product.sizeName] : [],
+                    priceRange: { min: product.price ?? 0, max: product.price ?? 0 },
+                    variants: [{
+                        id: product.id,
+                        size: product.sizeName ?? null,
+                        color: product.colorName ?? null,
+                        count: 1,
+                        price: product.price ?? 0,
+                    }],
+                });
+            })
+            .finally(() => setLoading(false));
+    }, [product?.name]);
+
+    // 3. Довідники бренду/кольорів/розмірів
+    useEffect(() => {
+        if (!product) return;
+        setLoading(true);
+        Promise.all([
+            getBrand(String(product.brandId ?? 0)),
+            getSizes(),
+            getColors(),
+        ]).then(([brandData, sizesData, colorsData]: [BrandDto, SizeDto[], ColorDto[]]) => {
+            setBrand(brandData);
+            setSizes(sizesData);
+            setColors(colorsData);
+        }).finally(() => setLoading(false));
+    }, [product?.brandId]);
+
+    // fetch товарів які мечаться
     useEffect(() => {
         if (!product?.matchProductsId?.length) return;
         setLoading(true);
         Promise.all(
-            product.matchProductsId.map((id: number) =>
-                fetch(`/api/products/${id}`).then(r => r.json())
+            product.matchProductsId.map((matchId: number) =>
+                fetch(`/api/products/${matchId}`).then(r => r.json())
             )
         ).then(setMatchProducts).finally(() => setLoading(false));
     }, [product?.matchProductsId]);
 
-    //fetch кольорів та розмірів
+    // --- Групування варіантів ---
+
+    const availableColors = stats?.availableColors ?? [];
+    const availableSizes = stats?.availableSizes ?? [];
+
+    // Розміри, які реально є в наявності для обраного кольору
+    const availableSizesForColor = useMemo(() => {
+        if (selectedColor == null) return availableSizes;
+        const list = variants
+            .filter(v => v.color === selectedColor)
+            .map(v => v.size)
+            .filter((v): v is string => !!v);
+        return Array.from(new Set(list));
+    }, [variants, selectedColor, availableSizes]);
+
+    // Розміри, які треба заблокувати для обраного кольору
+    const disabledSizeNames = useMemo(() => {
+        return availableSizes.filter(size => !availableSizesForColor.includes(size));
+    }, [availableSizes, availableSizesForColor]);
+
+    // Поточний обраний варіант товару = конкретна комбінація color+size
+    const selectedVariant = useMemo(() => {
+        return (
+            variants.find(v => v.color === selectedColor && v.size === selectedSize)
+            ?? variants.find(v => v.color === selectedColor)
+            ?? variants[0]
+        );
+    }, [variants, selectedColor, selectedSize]);
+
+    // Коли міняється обраний варіант - підвантажуємо саме його фото, якщо ще не закешовані
     useEffect(() => {
+        const variantId = selectedVariant?.id;
+        if (variantId == null || variantImages[variantId]) return;
         setLoading(true);
-        const fetchData = async () => {
-            const [productRes, statsRes] = await Promise.all([
-                fetch(`/api/products/${id}`).then(r => r.json()),
-                fetch(`/api/Products/stats/all-grouped`).then(r => r.json()),
-            ]);
-            const matchedStats = statsRes.find((s: any) => s.name === productRes.name);
-            setProduct(productRes);
-            setStats({
-                availableColors: matchedStats?.availableColors ?? [],
-                availableSizes: matchedStats?.availableSizes ?? [],
-            });
-        };
-        fetchData().finally(() => setLoading(false));
-    }, [id]);
+        getProduct(String(variantId))
+            .then((variantProduct) => {
+                setVariantImages(prev => ({ ...prev, [variantId]: variantProduct.imageUrl ?? [] }));
+            })
+            .finally(() => setLoading(false));
+    }, [selectedVariant?.id]);
 
+    // Фото поточного варіанту (якщо ще не завантажені - фолбек на фото товару, відкритого за id)
+    const images = useMemo(() => {
+        if (selectedVariant?.id != null && variantImages[selectedVariant.id]) {
+            return variantImages[selectedVariant.id];
+        }
+        return product?.imageUrl ?? [];
+    }, [selectedVariant?.id, variantImages, product?.imageUrl]);
 
-
+    // При зміні набору фото повертаємось на першу картинку
+    useEffect(() => {
+        setCurrent(0);
+    }, [images]);
 
     const startTimer = useCallback((index: number) => {
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -172,7 +283,86 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
         startTimer(index);
     };
 
+    // Обрати колір: якщо поточний розмір недоступний для нового кольору - переключаємось на перший доступний
+    const handleSelectColor = (color: string) => {
+        setSelectedColor(color);
+        const sizesForColor = variants
+            .filter(v => v.color === color)
+            .map(v => v.size)
+            .filter((v): v is string => !!v);
+        if (selectedSize == null || !sizesForColor.includes(selectedSize)) {
+            setSelectedSize(sizesForColor[0] ?? null);
+        }
+    };
+
+    const handleSelectSize = (size: string) => {
+        setSelectedSize(size);
+    };
+
     if (!product) return <div>Завантаження...</div>;
+
+    const displayPrice = selectedVariant?.price ?? product.price;
+
+
+    const handleAddToBag = async () => {
+        if (!selectedVariant?.id) {
+            alert("Будь ласка, оберіть варіант товару");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const token =
+                typeof window !== "undefined"
+                    ? localStorage.getItem("token")
+                    : null;
+
+            const headers: HeadersInit = {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            };
+
+            const payload = {
+                productId: selectedVariant.id,
+                quantity: 1,
+            };
+
+            console.log(payload);
+            
+            const res = await fetch("/api/cart", {
+                method: "POST",
+                headers,
+                body: JSON.stringify({
+                    productId: selectedVariant.id,
+                    quantity: 1,
+                }),
+            });
+
+            if (!res.ok) {
+                throw new Error("Не вдалося додати товар у кошик");
+            }
+
+            const cartRes = await fetch("/api/cart", {
+                method: "GET",
+                headers,
+            });
+
+            if (!cartRes.ok) {
+                throw new Error("Не вдалося отримати кошик");
+            }
+
+            const cartData: ProductDto[] = await cartRes.json();
+            setBagItems(cartData);
+            console.log(cartData);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
 
     return (
         <div className='flex flex-col pt-18'>
@@ -207,40 +397,52 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
             <div className='flex items-center gap-2 pl-12'>
                 {/* з ліва */}
                 <div>
-                    <p className='text-2xl'>here will be brand name</p>
-                    <h2 className='text-4xl'>{product.name}</h2>
-                    <p className='text-2xl'>{product.price}</p>
+                    <p className='text-2xl'>{brand?.name ?? product?.brandId}</p>
+                    <h2 className='text-4xl'>{product?.name}</h2>
+                    <p className='text-2xl'>{displayPrice}</p>
 
                     {/* Size select */}
                     <SizeSelector
-                        sizes={stats.availableSizes}
+                        sizes={availableSizes}
                         selected={selectedSize}
-                        onSelect={setSelectedSize}
+                        disabledSizes={disabledSizeNames}
+                        onSelect={handleSelectSize}
                     />
 
                     {/* Colors */}
                     <div>
-                        <p className='text-2xl p-4'>Color: {selectedColor ?? stats.availableColors[0]}</p>
+                        <p className='text-2xl p-4'>Color: {selectedColor ?? ''}</p>
                         <div className='flex p-4 gap-2'>
-                            {stats.availableColors.map((color) => (
-                                <div
-                                    key={color}
-                                    title={color}
-                                    onClick={() => setSelectedColor(color)}
-                                    className={`w-[20px] h-[20px] rounded-full border p-2 cursor-pointer ${selectedColor === color ? 'border-black scale-110' : 'border-gray-400'}`}
-                                    style={{ backgroundColor: colorMap[color] ?? '#ccc' }}
-                                />
-                            ))}
+                            {availableColors.map((color) => {
+                                const colorInfo = colors.find(c => c.name === color);
+                                return (
+                                    <div
+                                        key={color}
+                                        title={color}
+                                        onClick={() => handleSelectColor(color)}
+                                        className={`w-[20px] h-[20px] rounded-full border p-2 cursor-pointer ${selectedColor === color ? 'border-black scale-110' : 'border-gray-400'}`}
+                                        style={{ backgroundColor: colorInfo?.hexCode ?? '#ccc' }}
+                                    />
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
                 {/* з права */}
-                <div className='flex flex-col grad-2 ml-auto'>
-                    <div className='p-2 flex flex-row grad-2 p-4'>
-                        <button className='bg-black text-white w-[599px] h-[72px] flex flex-row items-center justify-center gap-3 text-2xl p-4'>
+                <div className='flex flex-col grad-2 ml-auto w-1/2'>
+                    <div className='p-4 flex flex-row grad-2'>
+                        <button onClick={() => handleAddToBag()}
+                            className="w-full bg-black text-white py-3 flex items-center justify-center gap-2 text-sm font-medium tracking-wide"
+                        >
                             <img src={'/images/icons/whiteBagIcon.png'} alt={''} width={33} height={29} />
                             ADD TO BAG
                         </button>
+                        {bagItems && (
+                            <AddedToBagModal
+                                items={bagItems}
+                                onClose={() => setBagItems(null)}
+                            />
+                        )}
                         <div className="relative w-[57px] h-[72px] rounded-lg p-4" style={{ background: 'linear-gradient(135deg, #FECBBB, #BAA3A9, #95AEBC)' }}>
                             <button onClick={() => setIsFavorite(!isFavorite)}
                                 className="absolute inset-0 flex items-center justify-center"
@@ -260,15 +462,15 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                             </button>
                         </div>
                     </div>
-                    <button className='w-[663px] h-[75px] border-2 flex items-center justify-center'>
+                    <button className='w-full h-[75px] border-2 flex items-center justify-center'>
                         <img src={'/images/icons/applePayIcon.png'} alt={''} width={90} height={37} />
                     </button>
                     {/* Внизу з права */}
                     <div>
-                        <p className='py-12 text-4xl'>{product.details}</p>
+                        <p className='py-12 text-4xl'>{product?.details}</p>
                         <AccordionItem title='PRODUCT DETAILS'>
                             <ul className='space-y-1 text-2xl list-disc list-inside'>
-                                <li>{product.details}</li>
+                                <li>{product?.details}</li>
                             </ul>
                         </AccordionItem>
                         <AccordionItem title='DILIVERY & RETURNS'>
@@ -287,10 +489,10 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                 <div className='py-9 flex gap-8 justify-center'>
                     {matchProducts.map(p => (
                         <Link key={p.id} href={`/product/${p.id}`}>
-                            <ProductCard
+                            <SmallProductCard
                                 key={p.id}
                                 product={p}
-                                brandName={brands[p.brandId || 0] ?? ''}
+                                brandName={brand?.name || ''}
                             />
                         </Link>
                     ))}
@@ -298,4 +500,4 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
             </div>
         </div>
     );
-} 72
+}

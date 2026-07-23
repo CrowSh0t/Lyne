@@ -432,7 +432,7 @@ namespace LyneBg.Controllers
             return Ok(orders);
         }
 
-        [HttpGet("{UserName}orders")]
+        [HttpGet("orders/{UserName}")]
         public async Task<ActionResult> GetOrderByUserName(string UserName) 
         {
             var orders = await _context.Orders

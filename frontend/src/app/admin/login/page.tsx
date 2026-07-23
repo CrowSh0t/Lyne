@@ -35,6 +35,9 @@ export default function LoginPage() {
         setError(data.message || 'Помилка входу.');
         return;
       }
+      if (data.token) {
+        storage.setItem('token', data.token);
+      }
 
       storage.setItem('adminEmail', email);
       router.push('/admin/main');

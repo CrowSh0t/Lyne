@@ -48,10 +48,10 @@ export default function Header() {
             <Link href={accountLink} className="p-4">
               <img src="/images/icons/usersIcon.png" alt="icon" width={29} height={29} />
             </Link>
-            <Link href="/favoritePage" className="p-4">
+            <Link href="/favorite" className="p-4">
               <img src="/images/icons/favoriteIcon.png" alt="icon" width={36} height={36} />
             </Link>
-            <Link href="/cartPage" className="p-4">
+            <Link href="/cart" className="p-4">
               <img src="/images/icons/cartIcon.png" alt="icon" width={36} height={36} />
             </Link>
           </div>

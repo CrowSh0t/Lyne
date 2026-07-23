@@ -3,7 +3,7 @@ import { components } from "@/src/app/api/schema";
 type ProductDto = components["schemas"]["ProductDto"]
 
 // Картка товару
-export default function ProductCard({ product, brandName }: { product: ProductDto; brandName: string }) {
+export default function SmallProductCard({ product, brandName }: { product: ProductDto; brandName: string }) {
   return (
     <div className="bg-white rounded-xl p-3 cursor-pointer hover:shadow-md transition-all w-[220px]">
       <div className="mb-2">

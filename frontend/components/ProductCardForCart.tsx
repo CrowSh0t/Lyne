@@ -1,0 +1,72 @@
+"use client";
+
+import { useState } from "react";
+import { Heart, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { components } from "@/src/app/api/schema";
+
+type ProductDto = components["schemas"]["ProductDto"];
+
+export default function ProductCardForCart({ p }: { p: ProductDto }) {
+    const [quantity, setQuantity] = useState(1);
+
+    return (
+        <div className="flex bg-white rounded-2xl overflow-hidden shadow-sm">
+            <div className="w-[280px] h-[320px] bg-[#F5F5F3] flex items-center justify-center shrink-0">
+                <img
+                    src={p.imageUrl?.[0]}
+                    className="max-h-full max-w-full object-contain"
+                />
+            </div>
+
+            <div className="flex flex-col justify-between flex-1 p-6">
+                <div>
+                    <div className="flex items-start justify-between">
+                        <h1 className="text-lg font-medium leading-snug">
+                            {p.name}
+                        </h1>
+                        <div className="flex items-center gap-3 shrink-0 ml-4">
+                            <button aria-label="Favorite">
+                                <Heart className="w-5 h-5" />
+                            </button>
+                            <button aria-label="Remove">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+                    <p className="text-sm text-gray-400 mt-1">#{p.productCode}</p>
+
+                    <hr className="my-4 border-gray-200" />
+
+                    <div className="space-y-2">
+                        <h3 className="text-sm">
+                            Colour: <span>{p.colorName}</span>
+                        </h3>
+                        <h3 className="text-sm">
+                            Size: <span>{p.sizeName}</span>
+                        </h3>
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between mt-6">
+                    <div className="flex items-center gap-4 border border-gray-300 rounded-full px-4 py-1.5">
+                        <button
+                            aria-label="Decrease quantity"
+                            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <span className="text-sm w-4 text-center">{quantity}</span>
+                        <button
+                            aria-label="Increase quantity"
+                            onClick={() => setQuantity((q) => q + 1)}
+                        >
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <h3 className="text-lg font-medium">{p.price}UAH</h3>
+                </div>
+            </div>
+        </div>
+    );
+}

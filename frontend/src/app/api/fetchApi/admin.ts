@@ -18,6 +18,7 @@ type UpdateBrandDto = components["schemas"]["UpdateBrandDto"];
 type CreateColorDto = components["schemas"]["CreateColorDto"];
 type CreateSizeDto = components["schemas"]["CreateSizeDto"];
 type CreateDiscountDto = components["schemas"]["CreateDiscountDto"];
+type CartItem = components["schemas"]["CartItem"]
 
 
 const handleResponse = async (res: Response) => {
@@ -39,6 +40,11 @@ export const getProducts = async (): Promise<ProductDto[]> => {
 
 export const getProduct = async (id: string): Promise<ProductDto> => {
     const res = await fetch(`/api/products/${id}`);
+    return handleResponse(res);
+}
+
+export const getProductByName = async (name: string): Promise<ProductDto[]> => {
+    const res = await fetch(`/api/products/stats/${name}`);
     return handleResponse(res);
 }
 
@@ -184,6 +190,13 @@ export const getOrders = async (): Promise<OrderDto[]> => {
     return handleResponse(res);
 }
 
+export const getOrdersbyUserName = async (userName: string) => {
+    console.log("userName =", userName);
+
+    const res = await fetch(`/api/admin/orders/userName/${userName}`);
+    return handleResponse(res);
+}
+
 export const updateOrderStatus = async (id: string, status: string): Promise<void> => {
     const res = await fetch(`/api/admin/orders/${id}/status`, {
         method: 'PUT',
@@ -254,3 +267,16 @@ export const deleteUser = async (id: string): Promise<void> => {
     if (!res.ok) throw new Error(`Не вдалося видалити замовлення: ${res.status}`);
 }
 
+// ---------- Cart ----------
+
+export const getCartItems = async (): Promise<CartItem[]> => {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch('/api/cart', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    return handleResponse(res);
+};

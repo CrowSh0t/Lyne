@@ -2,10 +2,12 @@
 import {useEffect, useState } from 'react';
 import { components } from '../api/schema';
 import { useLoading } from '../context/LoadingContext';
-import { getOrders } from '../api/fetchApi/admin';
-import ProductCard from '@/components/ProductCard';
+import { getOrdersbyUserName, getProducts } from '../api/fetchApi/admin';
+import Link from 'next/link';
+import LargeProductCard from '@/components/LargeProductCard';
 
 type OrderDto = components["schemas"]["OrderDto"]
+type ProductDto = components["schemas"]["ProductDto"]
 
 export default function MyAccountPage() {
     const [name, setName] = useState('');
@@ -14,6 +16,7 @@ export default function MyAccountPage() {
     const [country, setCountry] = useState('');
     const [editingPass, setEditingPass] = useState(false);
     const [orders, setOrders] = useState<OrderDto[]>();
+    const [products, setProducts] = useState<ProductDto[]>([]);
     const {setLoading} = useLoading();
 
 
@@ -39,13 +42,16 @@ export default function MyAccountPage() {
     }
 
     useEffect(()=>{
+        if (!name) return;
         setLoading(true);
         Promise.all([
-            getOrders()
-        ]).then(([ordersData]: [OrderDto[]]) => {
-            //setOrders(ordersData)
+            getOrdersbyUserName(name),
+            getProducts()
+        ]).then(([ordersData, productsData]: [OrderDto[], ProductDto[]]) => {
+            setOrders(ordersData),
+            setProducts(productsData)
         }).finally(() => setLoading(false));
-    },[])
+    },[name])
 
     return (
         <div className='p-[48px] h-screen bg-[#D2D2D2]'>
@@ -139,18 +145,37 @@ export default function MyAccountPage() {
                     {activeTab === 'orders' && (
                         <div>
                             <div className="field pt-[5px]">
-                                {orders?.map(o =>(
-                                    <div>
-                                        {o.items?.map(i =>(
-                                            <div>
-                                                <h3>{i.productName}</h3>
-                                            </div>
-                                        ))}
+                                {orders && orders.length > 0 ? (
+                                    orders.map((o) => (
+                                        <div key={o.id}>
+                                            {o.items?.map((i) => (
+                                                <div key={i.productId}>
+
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className='flex flex-row w-1/2'>
+                                        <h3 className='text-3xl'>OOPS, you don’t have any orders for now</h3>
+                                            <Link
+                                                className='bg-black flex justify-center items-center ml-auto text-white text-2xl w-[350px] h-[44px]'
+                                                href={'/AllProducts'}
+                                            >
+                                                Start now
+                                            </Link>
                                     </div>
-                                ))}
-                                <h3>OOPS, you don’t have any orders for now</h3>
+                                )}
                             </div>
-                            
+                            <hr className='mt-6 w-1/2'/>
+                                <div>
+                                {products.map((p) => (
+                                        <LargeProductCard
+                                            p={p}
+                                        />
+                                    ))
+                                }
+                                </div>
                         </div>
                     )}
                 </div>

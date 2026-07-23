@@ -1,10 +1,10 @@
 'use client'
 import { useEffect, useState } from "react";
-import BackElement from "../../Components/BackToMainPageElem";
+import BackElement from "../../../../../components/BackToMainPageElem";
 import { useLoading } from "@/src/app/context/LoadingContext";
 import { useRouter } from "next/navigation";
 import React from "react";
-import PhotoButton, { PhotoSlotValue } from "../../Components/PhotoBtn";
+import PhotoButton, { PhotoSlotValue } from "../../../../../components/PhotoBtn";
 import type { components } from "@/src/app/api/schema";
 import { getCategories, getCategory} from "@/src/app/api/fetchApi/admin";
 

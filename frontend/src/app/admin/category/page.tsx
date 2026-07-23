@@ -3,10 +3,10 @@ import { useLoading } from "@/src/app/context/LoadingContext";
 import { useAdminHeaderStore } from "@/src/app/store/adminHeader";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import BackElement from "../Components/BackToMainPageElem";
+import BackElement from "../../../../components/BackToMainPageElem";
 import type { components } from "@/src/app/api/schema";
 import {getCategories} from "@/src/app/api/fetchApi/admin";
-import UniversalCreateModal from "../Components/CreateWindow";
+import UniversalCreateModal from "../../../../components/CreateWindow";
 
 type CategoryDto = components["schemas"]["CategoryDto"];
 

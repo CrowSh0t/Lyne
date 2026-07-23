@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { components } from '../../api/schema';
 import { useLoading } from '../../context/LoadingContext';
 import { getOrders } from '../../api/fetchApi/admin';
-import BackElement from '../Components/BackToMainPageElem';
+import BackElement from '../../../../components/BackToMainPageElem';
 
 type OrderDto = components["schemas"]["OrderDto"];
 

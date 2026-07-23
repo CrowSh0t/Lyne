@@ -5,8 +5,8 @@ import { useAdminHeaderStore } from "@/src/app/store/adminHeader";
 import { getBrands, getCategories, getColors, getProducts, getSizes } from "@/src/app/api/fetchApi/admin";
 import { useLoading } from "@/src/app/context/LoadingContext";
 import { useRouter } from "next/navigation";
-import BackElement from "../Components/BackToMainPageElem";
-import PhotoButton, { PhotoSlotValue } from "../Components/PhotoBtn";
+import BackElement from "../../../../components/BackToMainPageElem";
+import PhotoButton, { PhotoSlotValue } from "../../../../components/PhotoBtn";
 import { createProduct } from "@/src/app/api/fetchApi/admin";
 
 type BrandDto = components["schemas"]["BrandDto"];

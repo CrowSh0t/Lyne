@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import ProductCard from '@/components/ProductCard';
+import SmallProductCard from '@/components/SmallProductCard';
 import { useLoading } from './context/LoadingContext';
 import { components } from './api/schema';
 import { getBrands, getProducts } from './api/fetchApi/admin';
@@ -211,7 +211,7 @@ export default function Home() {
         <div className='py-9 flex gap-4'>
           {uniqueProducts.map(product => (
             <Link key={product.id} href={`/product/${product.id}`}>
-              <ProductCard
+              <SmallProductCard
                 key={product.id}
                 product={product}
                 brandName={brands[product.brandId || 0] ?? ''}

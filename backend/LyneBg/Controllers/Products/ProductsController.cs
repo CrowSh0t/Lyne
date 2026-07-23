@@ -184,57 +184,45 @@ namespace LyneBg.Controllers.Products
             }
         }
 
-        [HttpGet("stats/by-name")]
-        public async Task<ActionResult> GetProductInfoByName([FromQuery] string name)
+        [HttpGet("stats/{name}")]
+        public async Task<ActionResult> GetProductInfoByName(string name)
         {
-            try
+            var products = await _context.Products
+                .Include(p => p.Color)
+                .Include(p => p.Size)
+                .Where(p => p.Name == name)
+                .ToListAsync();
+
+            if (products == null || !products.Any())
             {
-                if (string.IsNullOrWhiteSpace(name))
-                    return BadRequest("Параметр name обов'язковий");
+                return NotFound(new { message = $"Товар з назвою '{name}' не знайдено" });
+            }
 
-                var products = await _context.Products
-                    .Where(p => p.Name.ToLower() == name.ToLower())
-                    .ToListAsync();
-
-                if (!products.Any())
-                    return NotFound($"Продукт '{name}' не знайдено");
-
-                var result = new
+            var result = new
+            {
+                Name = name,
+                TotalCount = products.Count,
+                AvailableColors = products.Select(p => p.Color?.Name).Where(c => c != null).Distinct().ToList(),
+                AvailableSizes = products.Select(p => p.Size?.Name).Where(s => s != null).Distinct().ToList(),
+                PriceRange = new
                 {
-                    Name = name,
-                    TotalCount = products.Count,
-                    AvailableColors = products
-                        .Select(p => p.Color.ToString())
-                        .Distinct()
-                        .ToList(),
-                    AvailableSizes = products
-                        .Select(p => p.Size.ToString())
-                        .Distinct()
-                        .ToList(),
-                    PriceRange = new
+                    Min = products.Min(p => p.Price),
+                    Max = products.Max(p => p.Price)
+                },
+                Variants = products
+                    .GroupBy(p => new { SizeName = p.Size?.Name, ColorName = p.Color?.Name })
+                    .Select(g => new
                     {
-                        Min = products.Min(p => p.Price),
-                        Max = products.Max(p => p.Price)
-                    },
-                    Variants = products
-                        .GroupBy(p => new { p.Size, p.Color })
-                        .Select(g => new
-                        {
-                            Size = g.Key.Size.ToString(),
-                            Color = g.Key.Color.ToString(),
-                            Count = g.Count(),
-                            Prices = g.Select(p => p.Price).ToList()
-                        })
-                        .ToList()
-                };
+                        Id = g.First().Id,
+                        Size = g.Key.SizeName,
+                        Color = g.Key.ColorName,
+                        Count = g.Count(),
+                        Price = g.First().Price
+                    })
+                    .ToList()
+            };
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error getting product info for '{name}'");
-                return StatusCode(500, "Internal server error");
-            }
+            return Ok(result);
         }
 
         [HttpGet("stats/total-count")]
