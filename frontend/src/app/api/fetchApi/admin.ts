@@ -8,6 +8,7 @@ type SizeDto = components["schemas"]["SizeDto"];
 type OrderDto = components["schemas"]["OrderDto"];
 type DiscountDto = components["schemas"]["DiscountDto"];
 type UserDto = components["schemas"]["UserDto"];
+type CartItem = components["schemas"]["CartItem"]
 
 type CreateProductDto = components["schemas"]["CreateProductDto"];
 type UpdateProductDto = components["schemas"]["UpdateProductDto"];
@@ -18,7 +19,8 @@ type UpdateBrandDto = components["schemas"]["UpdateBrandDto"];
 type CreateColorDto = components["schemas"]["CreateColorDto"];
 type CreateSizeDto = components["schemas"]["CreateSizeDto"];
 type CreateDiscountDto = components["schemas"]["CreateDiscountDto"];
-type CartItem = components["schemas"]["CartItem"]
+type CreateOrderDto = components["schemas"]["CreateOrderDto"]
+
 
 
 const handleResponse = async (res: Response) => {
@@ -186,24 +188,14 @@ export const deleteSize = async (id: string): Promise<void> => {
 // ---------- Orders (Admin) ----------
 
 export const getOrders = async (): Promise<OrderDto[]> => {
-    const res = await fetch('/api/admin/orders');
-    return handleResponse(res);
-}
-
-export const getOrdersbyUserName = async (userName: string) => {
-    console.log("userName =", userName);
-
-    const res = await fetch(`/api/admin/orders/userName/${userName}`);
-    return handleResponse(res);
-}
-
-export const updateOrderStatus = async (id: string, status: string): Promise<void> => {
-    const res = await fetch(`/api/admin/orders/${id}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(status),
+    const token = localStorage.getItem("token");
+    const res = await fetch('/api/admin/orders', {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
     });
-    if (!res.ok) throw new Error(`Не вдалося оновити статус замовлення: ${res.status}`);
+    return handleResponse(res);
 }
 
 export const updateOrderPayment = async (id: string, paymentStatus: string): Promise<void> => {
@@ -216,9 +208,65 @@ export const updateOrderPayment = async (id: string, paymentStatus: string): Pro
 }
 
 export const deleteOrder = async (id: string): Promise<void> => {
-    const res = await fetch(`/api/admin/orders/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error(`Не вдалося видалити замовлення: ${res.status}`);
+    const token = localStorage.getItem("token");
+    const res = await fetch(`/api/admin/orders/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+    },);
+    return handleResponse(res);
 }
+
+// ----- Orders (User)-----
+
+export const getOrdersbyUserName = async (userName: string) => {
+
+    console.log("userName =", userName);
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`/api/orders/by-username/${userName}`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` }
+    })
+    return handleResponse(res);
+}
+
+export const getUserOrdersById = async (id: string,): Promise<void> => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`/api/orders/${id}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return handleResponse(res);
+}
+
+export const createUserOrder = async (data: CreateOrderDto): Promise<OrderDto> => {
+    const token = localStorage.getItem("token");
+    const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+
+        body: JSON.stringify(data),
+    });
+    return handleResponse(res);
+}
+
+export const updateOrderStatus = async (id: string, status: string): Promise<void> => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/orders/${id}/status`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(status)
+        
+    });
+    if (!res.ok) throw new Error(`Не вдалося оновити статус: ${res.status}`);
+};
 
 // ---------- Discounts (Admin) ----------
 
@@ -253,6 +301,11 @@ export const getUser = async (id: string): Promise<UserDto> => {
     return handleResponse(res);
 }
 
+export const getUserByUserName = async (userName: string): Promise<UserDto> => {
+    const res = await fetch(`/api/users/userName/${userName}`);
+    return handleResponse(res);
+}
+
 export const updateUser = async (id: string, status: string): Promise<void> => {
     const res = await fetch(`/api/admin/users/${id}/status`, {
         method: 'PUT',
@@ -273,6 +326,133 @@ export const getCartItems = async (): Promise<CartItem[]> => {
     const token = localStorage.getItem("token");
 
     const res = await fetch('/api/cart', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    return handleResponse(res);
+};
+
+
+export const deleteCart = async (): Promise<void> => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`/api/cart/clear`,
+        {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        },);
+    if (!res.ok) throw new Error(`Не вдалося видалити кошик: ${res.status}`);
+}
+
+
+// ------ LOGIN & REGISTER -----
+
+export const Login = async (email: string, password: string): Promise<void> => {
+
+    const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ login: email, password }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+        throw new Error(data.message || data.error || `Сервер повернув помилку ${res.status}`);
+    }
+
+    // ⚠️ уточніть точну назву поля — token / accessToken / jwt тощо
+    const token = data.token || data.accessToken || data.jwt;
+    if (token) {
+        localStorage.setItem('token', token);
+    } else {
+        console.warn('Login response has no token field:', data);
+    }
+
+    const meRes = await fetch('/api/me', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    if (!meRes.ok) {
+        console.warn('/api/me returned', meRes.status);
+        return;
+    }
+
+    const meData = await meRes.json();
+    localStorage.setItem('username', meData.name || '');
+    localStorage.setItem('email', meData.email || '');
+    localStorage.setItem('country', meData.country || '');
+    window.dispatchEvent(new Event('authChange'));
+
+    if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('tokenExpiry', String(Date.now() + 24 * 60 * 60 * 1000));
+    }
+};
+
+export const Register = async (
+    login: string,
+    password: string,
+    name: string,
+    email: string,
+    country: string,
+    dob: string
+): Promise<{ ok: boolean; message?: string }> => {
+    const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ login, password, name, email, country, dob }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+        return { ok: false, message: extractErrorMessage(data, res.status) };
+    }
+
+    const meRes = await fetch('/api/me', { credentials: 'include' });
+    if (!meRes.ok) {
+        // реєстрація пройшла, але сесія не встановилась — просто повертаємось без даних юзера
+        return { ok: true };
+    }
+
+    const meData = await meRes.json().catch(() => null);
+    if (meData) {
+        localStorage.setItem('username', meData.name || '');
+        localStorage.setItem('email', meData.email || '');
+        localStorage.setItem('country', meData.country || '');
+        window.dispatchEvent(new Event('authChange'));
+    }
+
+    return { ok: true };
+};
+
+function extractErrorMessage(data: any, status: number): string {
+    // бекенд може повертати помилку по-різному — пробуємо найпоширеніші варіанти
+    if (data?.message) return data.message;
+    if (data?.error) return data.error;
+    if (Array.isArray(data?.errors) && data.errors.length > 0) {
+        return data.errors.map((e: any) => e.message || e).join(', ');
+    }
+
+    if (status === 400) return 'Перевірте правильність введених даних.';
+    if (status === 409) return 'Користувач з таким логіном або email вже існує.';
+    if (status === 422) return 'Пароль занадто короткий або не відповідає вимогам (мінімум 8 символів, літери та цифри).';
+
+    return 'Помилка реєстрації. Спробуйте ще раз.';
+}
+
+// ---- Me---
+export const getMe = async (): Promise<CartItem[]> => {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch('/api/me', {
         headers: {
             Authorization: `Bearer ${token}`,
         },

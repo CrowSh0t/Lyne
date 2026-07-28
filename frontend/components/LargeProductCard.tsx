@@ -12,8 +12,8 @@ export default function LargeProductCard({p}:{p:ProductDto}){
         >
             <div className='w-full aspect-[3/4] relative bg-[#f5f5f5] mb-3 overflow-hidden'>
                 <img
-                    src={p?.imageUrl?.[0] || 'https://example.com/placeholder.png'}
-                    alt={p?.name || 'Product image'}
+                    src={p.imageUrl?.[0] || '/images/placeholder.png'}
+                    alt={p.name || 'Product image'}
                     className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105'
                 />
                 <div className='absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200'>

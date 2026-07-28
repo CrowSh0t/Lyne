@@ -5,7 +5,7 @@ export default function Footer() {
     return (
         <footer>
             {/* Чорна частина */}
-            <div className="bg-black text-white px-16 py-16">
+            <div className="bg-black text-white px-16 py-16 w-full">
                 {/* Логотип по центру */}
                 <div className="text-center mb-16">
                     <h2 className="text-4xl font-light tracking-widest">LYNE</h2>

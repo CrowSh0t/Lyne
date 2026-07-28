@@ -65,6 +65,7 @@ export default function FiltersPage(){
         });
 
         if (res.ok) {
+            window.location.reload();
             setCategories(prev => prev.filter(p => p.id !== id));
         }
     };
@@ -80,14 +81,12 @@ export default function FiltersPage(){
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
                 },
             });
-
-            if (!res.ok) {
-                throw new Error(`Помилка при видаленні: ${res.statusText}`);
+            
+            if (res.ok) {
+                window.location.reload();
+                setColors(prev => prev.filter(p => p.id !== id));
+                console.log(`Колір з ID ${id} успішно видалено`);
             }
-
-            // Оновлюємо стейт тільки після успішного видалення на сервері
-            setColors(prev => prev.filter(p => p.id !== id));
-            console.log(`Колір з ID ${id} успішно видалено`);
 
         } catch (error) {
             console.error('Не вдалося видалити колір:', error);

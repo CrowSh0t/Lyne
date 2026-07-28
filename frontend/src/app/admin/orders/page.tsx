@@ -3,7 +3,7 @@ import { useAdminHeaderStore } from '@/src/app/store/adminHeader';
 import { useEffect, useState } from 'react';
 import { components } from '../../api/schema';
 import { useLoading } from '../../context/LoadingContext';
-import { getOrders } from '../../api/fetchApi/admin';
+import { deleteOrder, getOrders } from '../../api/fetchApi/admin';
 import BackElement from '../../../../components/BackToMainPageElem';
 
 type OrderDto = components["schemas"]["OrderDto"];
@@ -33,17 +33,24 @@ export default function MainPage() {
         }).finally(() => setLoading(false));
     }, [])
 
+    const handleDeleteOrder = (id:string) =>{
+        deleteOrder(id)
+        window.location.reload()
+    }
+
     return (
         <div className="pt-[80px]">
             <BackElement />
 
-            <div className="px-16 w-full">
-                <table className="w-full table-auto">
+            <div className="px-16 w-full max-h-[700px] overflow-y-auto">
+                <table className="w-full">
                     <thead>
                         <tr className="text-left text-xl border-b border-gray-200">
+                            <th className="py-4 px-6 font-normal">Id</th>
                             <th className="py-4 px-6 font-normal">Name</th>
                             <th className="py-4 px-6 font-normal">Amount of money</th>
                             <th className="py-4 px-6 font-normal">Status</th>
+                            <th></th>
                         </tr>
                     </thead>
 
@@ -54,6 +61,9 @@ export default function MainPage() {
                                 className="border-b border-gray-100 hover:bg-gray-50"
                             >
                                 <td className="py-4 px-6">
+                                    {ord.id || "-"}
+                                </td>
+                                <td className="py-4 px-6">
                                     {ord.userName || "-"}
                                 </td>
 
@@ -63,6 +73,12 @@ export default function MainPage() {
 
                                 <td className="py-4 px-6">
                                     {ord.status || "-"}
+                                </td>
+                                <td>
+                                    <button className="hover:text-red-500"
+                                    onClick={() =>handleDeleteOrder(String(ord.id))}>
+                                        <img src="/images/admin/icons/deleteIcon.png" alt="Delete" width={18} height={20} />
+                                    </button>
                                 </td>
                             </tr>
                         ))}

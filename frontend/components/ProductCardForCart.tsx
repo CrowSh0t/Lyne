@@ -1,19 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { components } from "@/src/app/api/schema";
+import { useLoading } from "@/src/app/context/LoadingContext";
+import { getProduct } from "@/src/app/api/fetchApi/admin";
 
-type ProductDto = components["schemas"]["ProductDto"];
+type OrderItemDto = components["schemas"]["OrderItemDto"];
+type ProductDto = components["schemas"]["ProductDto"]
 
-export default function ProductCardForCart({ p }: { p: ProductDto }) {
-    const [quantity, setQuantity] = useState(1);
+export default function ProductCardForCart({ p}: { p: OrderItemDto}) {
+    const [quantity, setQuantity] = useState(p.quantity ?? 1);
+    const[product,setProduct] = useState<ProductDto>();
+    const {setLoading} = useLoading()
 
+    useEffect(() =>{
+        if(!p) return
+        setLoading(true);
+        Promise.all([
+            getProduct(String(p.productId))
+        ]).then(([prodctData]: [ProductDto])=>(
+            setProduct(prodctData)
+        )).finally(() => setLoading(false))
+    },[])
     return (
         <div className="flex bg-white rounded-2xl overflow-hidden shadow-sm">
             <div className="w-[280px] h-[320px] bg-[#F5F5F3] flex items-center justify-center shrink-0">
                 <img
-                    src={p.imageUrl?.[0]}
+                    src={product?.imageUrl?.[0]}
                     className="max-h-full max-w-full object-contain"
                 />
             </div>
@@ -22,7 +36,7 @@ export default function ProductCardForCart({ p }: { p: ProductDto }) {
                 <div>
                     <div className="flex items-start justify-between">
                         <h1 className="text-lg font-medium leading-snug">
-                            {p.name}
+                            {product?.name}
                         </h1>
                         <div className="flex items-center gap-3 shrink-0 ml-4">
                             <button aria-label="Favorite">
@@ -33,16 +47,16 @@ export default function ProductCardForCart({ p }: { p: ProductDto }) {
                             </button>
                         </div>
                     </div>
-                    <p className="text-sm text-gray-400 mt-1">#{p.productCode}</p>
+                    <p className="text-sm text-gray-400 mt-1">#{product?.productCode}</p>
 
                     <hr className="my-4 border-gray-200" />
 
                     <div className="space-y-2">
                         <h3 className="text-sm">
-                            Colour: <span>{p.colorName}</span>
+                            Colour: <span>{product?.colorName}</span>
                         </h3>
                         <h3 className="text-sm">
-                            Size: <span>{p.sizeName}</span>
+                            Size: <span>{product?.sizeName}</span>
                         </h3>
                     </div>
                 </div>
@@ -64,7 +78,7 @@ export default function ProductCardForCart({ p }: { p: ProductDto }) {
                         </button>
                     </div>
 
-                    <h3 className="text-lg font-medium">{p.price}UAH</h3>
+                    <h3 className="text-lg font-medium">{product?.price}UAH</h3>
                 </div>
             </div>
         </div>

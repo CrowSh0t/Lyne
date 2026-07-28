@@ -64,5 +64,22 @@ namespace LyneBg.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        [HttpDelete("clear")]
+        public async Task<ActionResult> ClearCart()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var items = await _context.CartItems
+                .Where(ci => ci.UserId == userId)
+                .ToListAsync();
+
+            if (!items.Any()) return NotFound();
+
+            _context.CartItems.RemoveRange(items);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
 }

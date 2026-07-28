@@ -24,6 +24,8 @@ export default function GridToggle() {
     const [categories, setCategories] = useState<CategoryDto[]>([]);
     const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
+    const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+    
     const { setLoading } = useLoading()
 
     const toggleSubFilter = (filterName: string) => {
@@ -50,6 +52,18 @@ export default function GridToggle() {
             setCategories(categoryData);
         }).finally(() => setLoading(false));
     }, [])
+
+    const toggleCategory = (id: number) => {
+        setSelectedCategories(prev =>
+            prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+        );
+    };
+
+    const filteredProducts = selectedCategories.length > 0
+    ? products.filter(p =>
+        p.categoriesId?.some(categoryId => selectedCategories.includes(categoryId))
+    )
+    : products;
 
     return (
         <div className='pt-18 flex min-h-screen bg-white text-black font-sans'>
@@ -129,10 +143,14 @@ export default function GridToggle() {
                             </div>
                             {activeFilter === 'category' && (
                                 <div className="py-6 flex flex-wrap gap-2 animate-fadeIn bg-white">
-                                    {categories.map((category, idx) => (
+                                    {categories.map((category) => (
                                         <button
-                                            key={idx}
-                                            className="px-4 py-2 bg-[#F9F9F9] hover:bg-gray-200 text-xs text-gray-800 font-light transition-colors duration-150"
+                                            key={category.id}
+                                            onClick={() => toggleCategory(category.id ?? 0)}
+                                            className={`px-4 py-2 text-xs font-light transition-colors duration-150 ${selectedCategories.includes(category.id ?? 0)
+                                                    ? 'bg-black text-white'
+                                                    : 'bg-[#F9F9F9] hover:bg-gray-200 text-gray-800'
+                                                }`}
                                         >
                                             {category.name}
                                         </button>
@@ -192,9 +210,8 @@ export default function GridToggle() {
                     className="grid gap-x-4 gap-y-10 transition-all duration-300"
                     style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
                 >
-                    {products.map((p) => (
-                        <LargeProductCard
-                            p={p} />
+                    {filteredProducts.map((p) => (
+                        <LargeProductCard p={p} />
                     ))}
                 </div>
             </div>

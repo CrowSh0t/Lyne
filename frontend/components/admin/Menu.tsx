@@ -45,7 +45,7 @@ export default function Menu() {
                         ))}
                     </div>
 
-                    <button onClick={handleLogout} className="flex flex-row items-center gap-6">
+                    <button onClick={() => handleLogout()} className="flex flex-row items-center gap-6">
                         <span>Log out</span>
                         <Image src="/images/icons/logoutIcon.png" alt='icon' width={36} height={36} />
                     </button>

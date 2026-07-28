@@ -5,6 +5,7 @@ using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace LyneBg.Controllers
@@ -21,12 +22,14 @@ namespace LyneBg.Controllers
         public async Task<ActionResult<OrderDto>> CreateOrder(CreateOrderDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var user = await _context.Users.FindAsync(userId);
+            var userName = User.FindFirstValue(ClaimTypes.Name)
+            ?? User.FindFirstValue("username")
+            ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
             var order = new Order
             {
                 UserId = userId,
-                UserName = user?.UserName,
+                UserName = userName,
                 Status = OrderStatus.New,
                 PaymentStatus = PaymentStatus.Pending
             };
@@ -96,5 +99,50 @@ namespace LyneBg.Controllers
                 }).ToList()
             };
         }
+
+        [HttpPut("{id}/status")]
+        public async Task<ActionResult> UpdateOrderStatus(int id, [FromBody] string status)
+        {
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null) return NotFound();
+
+            if (!Enum.TryParse<OrderStatus>(status, ignoreCase: true, out var parsedStatus))
+                return BadRequest($"Invalid status: {status}");
+
+            order.Status = parsedStatus;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpGet("by-username/{userName}")]
+        public async Task<ActionResult> GetOrderByUserName(string userName)
+        {
+            var orders = await _context.Orders
+                .Where(o => o.UserName.ToLower() == userName.ToLower()
+                         && o.Status != OrderStatus.Cancelled) // ← фільтр
+                .Include(o => o.Items)
+                .ThenInclude(i => i.Product)
+                .OrderByDescending(o => o.CreatedAt)
+                .Select(o => new
+                {
+                    o.Id,
+                    o.UserName,
+                    o.Amount,
+                    PaymentStatus = o.PaymentStatus.ToString(),
+                    Status = o.Status.ToString(),
+                    o.CreatedAt,
+                    Items = o.Items.Select(i => new
+                    {
+                        i.ProductId,
+                        ProductName = i.Product != null ? i.Product.Name : null,
+                        i.Quantity,
+                        i.UnitPrice
+                    })
+                }).ToListAsync();
+
+            return Ok(orders);
+        }
     }
+    
 }

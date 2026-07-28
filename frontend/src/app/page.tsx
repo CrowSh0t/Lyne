@@ -208,7 +208,7 @@ export default function Home() {
 
       {/* Лінія із колекцією одягу */}
       <div className='py-9'>
-        <div className='py-9 flex gap-4'>
+        <div className='py-9 flex gap-4 overflow-x-auto'>
           {uniqueProducts.map(product => (
             <Link key={product.id} href={`/product/${product.id}`}>
               <SmallProductCard

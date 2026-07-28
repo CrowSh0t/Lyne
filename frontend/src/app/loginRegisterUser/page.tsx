@@ -1,11 +1,12 @@
 'use client';
-import Image from 'next/image';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Login, Register } from '../api/fetchApi/admin';
 
 
 export default function loginRegisterUser() {
-    const [activeTab, setActiveTab] = useState("login"); // змінна для перевірки яка із вкладок вибрана
+    const router = useRouter();
+    const [activeTab, setActiveTab] = useState("login");
 
     const [remember, setRemember] = useState(false);
 
@@ -16,10 +17,9 @@ export default function loginRegisterUser() {
     const [country, setCountry] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [day, setDay] = useState('');
-    const [month, setMonth] = useState('');
-    const [year, setYear] = useState('');
-    const router = useRouter();
+    const [day, setDay] = useState<string>('');
+    const [month, setMonth] = useState<string>('');
+    const [year, setYear] = useState<string>('');
 
     // Для логіну
     const handleLogin = async () => {
@@ -31,36 +31,9 @@ export default function loginRegisterUser() {
         }
 
         setLoading(true);
-
-        try {
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ login: email, password: password })
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                setError(data.message || 'Помилка входу.');
-                return;
-            }
-            // Отримуємо ім'я і зберігаємо
-            const meRes = await fetch('/api/me', { credentials: 'include' });
-            const meData = await meRes.json();
-            localStorage.setItem('username', meData.name || '');
-            localStorage.setItem('email', meData.email || '');
-            localStorage.setItem('country', meData.country || '');
-            window.dispatchEvent(new Event('authChange'));
-
-
-            router.push('/myAccount');
-        } catch (err) {
-            setError('Не вдалось підключитись до сервера.');
-        } finally {
-            setLoading(false);
-        }
+        await Login(email, password);
+        router.push('/myAccount');
+        setLoading(false);
     };
 
     // Для реєстрації
@@ -70,30 +43,17 @@ export default function loginRegisterUser() {
             setError('Введіть значення.');
             return;
         }
+
         setLoading(true);
         try {
             const dob = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`).toISOString();
 
-            const res = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ login, password, name, email, country, dob }),
-            });
-            const data = await res.json();
-            console.log("STATUS:", res.status);
-            console.log("RESPONSE:", data);
-            console.log(login, email, country, name);
+            const result = await Register(login, password, name, email, country, dob);
 
-            if (!res.ok) {
-                setError(data.message || 'Помилка реєстрації.');
+            if (!result.ok) {
+                setError(result.message || 'Помилка реєстрації.');
                 return;
             }
-            const meRes = await fetch('/api/me', { credentials: 'include' });
-            const meData = await meRes.json();
-            localStorage.setItem('username', meData.name || '');
-            localStorage.setItem('email', meData.email || '');
-            localStorage.setItem('country', meData.country || '');
 
             router.push('/myAccount');
         } catch (err) {
@@ -101,7 +61,6 @@ export default function loginRegisterUser() {
         } finally {
             setLoading(false);
         }
-
     };
 
     return (

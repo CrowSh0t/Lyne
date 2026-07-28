@@ -19,7 +19,6 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-    const storage = remember ? localStorage : sessionStorage;
 
     try {
       const res = await fetch('/api/auth/login', {
@@ -35,11 +34,15 @@ export default function LoginPage() {
         setError(data.message || 'Помилка входу.');
         return;
       }
+
+      const expiry = Date.now() + 24 * 60 * 60 * 1000; // поточний час + 24 год в мс
+
       if (data.token) {
-        storage.setItem('token', data.token);
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('tokenExpiry', String(expiry));
       }
 
-      storage.setItem('adminEmail', email);
+      localStorage.setItem('adminEmail', email);
       router.push('/admin/main');
     } catch (err) {
       setError('Не вдалось підключитись до сервера.');

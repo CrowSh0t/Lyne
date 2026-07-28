@@ -432,33 +432,6 @@ namespace LyneBg.Controllers
             return Ok(orders);
         }
 
-        [HttpGet("orders/{UserName}")]
-        public async Task<ActionResult> GetOrderByUserName(string UserName) 
-        {
-            var orders = await _context.Orders
-                .Where(o => o.UserName.ToLower() == UserName.ToLower())
-                .Include(o => o.Items)
-                .ThenInclude(i => i.Product)
-                .OrderByDescending(o => o.CreatedAt)
-                .Select(o => new
-                {
-                    o.Id,
-                    o.UserName,
-                    o.Amount,
-                    PaymentStatus = o.PaymentStatus.ToString(),
-                    Status = o.Status.ToString(),
-                    o.CreatedAt,
-                    items = o.Items.Select(i => new { i.ProductId, ProductName = i.Product.Name, i.Quantity, i.UnitPrice })
-
-                }).ToListAsync();
-
-
-
-            return Ok(orders);
-        }
-
-
-
         [HttpPut("orders/{id}/status")]
         public async Task<ActionResult> UpdateOrderStatus(int id, [FromBody] string status)
         {
