@@ -45,7 +45,7 @@ export default function AddedToBagModal({
 
                 <div className="p-4 space-y-2 border-t">
                     <button
-                        onClick={() => (window.location.href = "/checkout")}
+                        onClick={() => (window.location.href = "/payment")}
                         className="w-full bg-black text-white rounded-full py-3 text-sm font-medium"
                     >
                         Proceed to Checkout

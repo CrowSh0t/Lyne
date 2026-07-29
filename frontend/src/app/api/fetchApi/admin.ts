@@ -366,6 +366,18 @@ export const deleteCart = async (): Promise<void> => {
     if (!res.ok) throw new Error(`Не вдалося видалити кошик: ${res.status}`);
 }
 
+export const deleteCartItem = async (cartItemId:string): Promise<void> => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`/api/cart/${cartItemId}`,
+        {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        },);
+    if (!res.ok) throw new Error(`Не вдалося видалити кошик: ${res.status}`);
+}
+
 
 // ------ LOGIN & REGISTER -----
 

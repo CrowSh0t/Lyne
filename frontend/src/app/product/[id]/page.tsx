@@ -8,9 +8,6 @@ import { components } from "@/src/types/schema";
 import { addToFavorites, checkIsFavorite, getBrand, getCategories, getColors, getProduct, getProductByName, getSizes, removeFromFavorites } from '../../api/fetchApi/admin';
 import AddedToBagModal from '@/components/AddedToBagModal';
 
-
-
-
 type ProductDto = components["schemas"]["ProductDto"];
 type BrandDto = components["schemas"]["BrandDto"]
 type ColorDto = components["schemas"]["ColorDto"]

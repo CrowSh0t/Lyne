@@ -34,8 +34,8 @@ export default function MainPage() {
     }, [])
 
     const handleDeleteOrder = (id:string) =>{
-        deleteOrder(id)
-        window.location.reload()
+        deleteOrder(id);
+        window.location.reload();
     }
 
     return (

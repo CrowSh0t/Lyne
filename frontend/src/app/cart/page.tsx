@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { components } from "@/src/types/schema";
 import { useLoading } from "../context/LoadingContext";
-import { createUserOrder, getCartItems } from "../api/fetchApi/admin";
+import { createUserOrder, deleteCartItem, getCartItems } from "../api/fetchApi/admin";
 import ProductCardForCart from "@/components/ProductCardForCart";
 import Link from "next/link";
 
@@ -11,7 +11,6 @@ type OrderDto = components["schemas"]["OrderDto"]
 
 export default function Cart() {
     const [cart, setCart] = useState<CartItem[]>([])
-    const [order, setOrder] = useState<OrderDto>();
     const { setLoading } = useLoading()
 
     useEffect(() => {
@@ -21,18 +20,25 @@ export default function Cart() {
             .finally(() => setLoading(false))
     }, []);
 
-    useEffect(() => {
-        if (!cart.length) return;
-        setLoading(true);
-        createUserOrder({
-            items: cart.map((item) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-            })),
-        })
-            .then((orderData) => setOrder(orderData))
-            .finally(() => setLoading(false));
-    }, [cart]);
+
+    const handleQuantityChange = (productId: number, quantity: number) => {
+        setCart((prev) =>
+            prev.map((item) =>
+                item.productId === productId ? { ...item, quantity } : item
+            )
+        );
+    };
+
+    const handleRemoveItem = (cartItemId: string) => {
+        setCart((prev) => prev.filter((item) => String(item.id) !== cartItemId));
+    };
+
+    const totalAmount = cart.reduce(
+        (sum, item) => sum + (item.product?.price ?? 0) * (item.quantity ?? 1),
+        0
+    );
+
+    const totalItems = cart.reduce((sum, item) => sum + (item.quantity ?? 1), 0);
 
     return (
         <div className="pt-[80px]">
@@ -44,19 +50,20 @@ export default function Cart() {
 
             <div className="pt-2 flex flex-col lg:flex-row px-4 sm:px-6 lg:px-0 gap-6 lg:gap-0" >
                 {/* Список товарів */}
-                <div className="w-full lg:w-1/2 max-h-[500px] lg:h-[1000px] overflow-y-auto ">
+                <div className="w-full lg:w-1/2 max-h-[800px] lg:h-[1000px] overflow-y-auto bg-black/60">
                     {cart.map((c) => (
                         <div key={c.id} className="p-2 sm:p-4 ">
-                            {c.product && (
-                                <ProductCardForCart
-                                    p={{
-                                        productId: c.product.id,
-                                        productName: c.product.name,
-                                        quantity: c.quantity,
-                                        unitPrice: c.product.price,
-                                    }}
-                                />
-                            )}
+                            <ProductCardForCart
+                                p={{
+                                    productId: c.product?.id,
+                                    productName: c.product?.name,
+                                    quantity: c.quantity,
+                                    unitPrice: c.product?.price,
+                                }}
+                                cartItemId={String(c.id)}
+                                onQuantityChange={handleQuantityChange}
+                                onRemove={handleRemoveItem}  // ← і це
+                            />
                         </div>
                     ))}
                 </div>
@@ -70,16 +77,16 @@ export default function Cart() {
                         <div className="text-xl sm:text-2xl lg:text-4xl p-4 sm:p-6">
                             <h3>ORDER SUMMARY</h3>
                             <br />
-                            <h1>Subtotal: {cart.length ?? 0} items</h1>
+                            <h1>Subtotal: {totalItems} items</h1>
                             <br />
-                            <h1>Order amount: {order?.amount ?? 0} UAH</h1>
+                            <h1>Order amount: {totalAmount} UAH</h1>
                             <br />
                             <h1>Shipping cost: Free</h1>
                             <br />
                             <h1>Discount: 0 %</h1>
                             <br />
                             <hr />
-                            <h1 className="py-4">Total {order?.amount} UAH</h1>
+                            <h1 className="py-4">Total {totalAmount} UAH</h1>
                         </div>
 
                         <div className="p-4 sm:p-6 pb-6 sm:pb-8">

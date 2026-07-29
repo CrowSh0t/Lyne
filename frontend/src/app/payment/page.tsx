@@ -16,6 +16,7 @@ const steps = [
 type CartDto = components["schemas"]["CartItem"]
 type OrderDto = components["schemas"]["OrderDto"]
 
+
 // --- 1. СТЕПЕР ---
 export const CheckoutStepper = ({ currentStep }: { currentStep: number }) => {
   const progressWidth = ((currentStep - 1) / (steps.length - 1)) * 100;
@@ -98,20 +99,6 @@ export const OrderingDataForm = ({ onNextStep, onPrevStep }: StepProps) => {
     }).finally(() => setLoading(false));
   }, [])
 
-
-  useEffect(() => {
-    if (!cart.length) return;
-    setLoading(true);
-    createUserOrder({
-      items: cart.map((item) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-      })),
-    })
-      .then((orderData) => setOrder(orderData))
-      .finally(() => setLoading(false));
-  }, [cart]);
-  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev: typeof formData) => {
@@ -129,9 +116,9 @@ export const OrderingDataForm = ({ onNextStep, onPrevStep }: StepProps) => {
   const inputBaseStyle =
     'w-full bg-gray-50 rounded-lg px-4 py-3.5 text-base text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-black focus:border-black transition duration-150';
 
+  const totalItems = cart.reduce((sum, item) => sum + (item.quantity ?? 1), 0);
+
   return (
-
-
     <div className="flex flex-row">
       <div className="flex mr-auto p-4">
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -198,7 +185,7 @@ export const OrderingDataForm = ({ onNextStep, onPrevStep }: StepProps) => {
           <h1>Discount: 0 %</h1>
           <br />
           <hr />
-          <h1 className="py-4">Subtotal: {cart.length ?? 0} items</h1>
+          <h1 className="py-4">Subtotal: {totalItems} items</h1>
         </div>
       </div>
     </div>
@@ -226,19 +213,9 @@ export const DeliveryForm = ({ onNextStep, onPrevStep }: StepProps) => {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (!cart.length) return;
-    setLoading(true);
-    createUserOrder({
-      items: cart.map((item) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-      })),
-    })
-      .then((orderData) => setOrder(orderData))
-      .finally(() => setLoading(false));
-  }, [cart]);
-
+  const totalAmount = cart.reduce(
+  (sum, item) => sum + (item.product?.price ?? 0) * (item.quantity ?? 1),
+  0);
 
   return (
     <div className="space-y-6 items-center justify-center flex flex-row">
@@ -295,10 +272,10 @@ export const DeliveryForm = ({ onNextStep, onPrevStep }: StepProps) => {
           ))}
         </div>
          <div className="p-6">
-          <h1 className="py-4">Total {(order?.amount ?? 0) + shippingCost} UAH</h1>
+          <h1 className="py-4">Total {totalAmount + shippingCost} UAH</h1>
           <h1>Order amount: {order?.amount ?? 0} UAH</h1>
           <br />
-          <h1>Shipping cost: Shipping cost:{' '}
+          <h1>Shipping cost:{' '}
           {shippingCost > 0 ? `${shippingCost} UAH` : 'Free'}</h1>
           <br />
           <h1>Discount: 0 %</h1>
@@ -320,6 +297,7 @@ export const PaymentForm = ({ onPrevStep }: StepProps) => {
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
   const { setLoading } = useLoading()
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -336,21 +314,24 @@ export const PaymentForm = ({ onPrevStep }: StepProps) => {
   };
 
   const handleConfirmCard = async () => {
-    setShowCardModal(false);
-    setLoading(true);
-    try {
-      await createUserOrder({
-        items: cart.map(item => ({
-          productId: item.productId,
-          quantity: item.quantity
-        }))
-      });
-      await deleteCart();
-      router.push('/myAccount');
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (isSubmitting) return; // захист від повторного виклику
+  setIsSubmitting(true);
+  setShowCardModal(false);
+  setLoading(true);
+  try {
+    await createUserOrder({
+      items: cart.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity
+      }))
+    });
+    await deleteCart();
+    router.push('/myAccount');
+  } finally {
+    setIsSubmitting(false);
+    setLoading(false);
+  }
+};
 
   // 1. Форматування номера картки (авто-пробіли кожні 4 цифри)
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -473,9 +454,12 @@ export const PaymentForm = ({ onPrevStep }: StepProps) => {
               </p>
               <button
                 onClick={handleConfirmCard}
-                className="w-full bg-black hover:bg-gray-800 text-white py-4 rounded-xl font-medium text-sm transition shadow-lg shadow-black/10 active:scale-[0.99]"
+                disabled={isSubmitting}
+                className="w-full bg-black hover:bg-gray-800 text-white py-4 rounded-xl font-medium 
+             text-sm transition shadow-lg shadow-black/10 active:scale-[0.99]
+             disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Confirm and Pay
+                {isSubmitting ? 'Processing...' : 'Confirm and Pay'}
               </button>
             </div>
 
