@@ -16,6 +16,7 @@ namespace Infrastructure.Mappings
     {
         public ProductMappingProfile()
         {
+            // Приклад у MappingProfile
             CreateMap<Products, ProductDto>();
             CreateMap<CreateProductDto, Products>();
             CreateMap<UpdateProductDto, Products>();

@@ -1,5 +1,5 @@
 'use client'
-import type { components } from "@/src/app/api/schema";
+import { components } from "@/src/types/schema";
 import { useEffect,useState } from "react";
 import { useAdminHeaderStore } from "@/src/app/store/adminHeader";
 import { getBrands, getCategories, getColors, getProducts, getSizes } from "@/src/app/api/fetchApi/admin";

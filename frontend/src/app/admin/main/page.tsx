@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAdminHeaderStore } from '@/src/app/store/adminHeader';
 import { useEffect, useState } from 'react';
-import { components } from '@/src/app/api/schema';
+import { components } from '@/src/types/schema'
 import { useLoading } from '../../context/LoadingContext';
 import { getDiscounts, getOrders } from '@/src/app/api/fetchApi/admin';
 
@@ -88,9 +88,9 @@ export default function MainPage() {
                     </div>
                     <Image src={hoverdRevenueImage} alt='revenue' width={916} height={206} />
                 </div>
-                <div>
+                <div className='max-h-[200px] overflow-y-auto'>
                     <h1 className='text-2xl'>Latest orders</h1>
-                    <table >
+                    <table>
                         <thead>
                             <tr className='text-left text-xl border-b border-gray-200'>
                                 <th className='px-16 font-normal'>Name</th>
@@ -100,7 +100,7 @@ export default function MainPage() {
                         </thead>
                         <tbody>
                         {orders.map(ord => (
-                            <tr key={ord.id} className="border-b border-gray-100 hover:bg-gray-50">
+                            <tr key={ord.id} className="border-b border-gray-100 hover:bg-gray-50 ">
                                 <td className="py-3 flex items-center gap-3">{ord.userName || "-"}</td>
                                 <td className="py-3">{ord.amount || "-"}</td>
                                 <td className="py-3 text-gray-400">{ord.status || "-"}</td>

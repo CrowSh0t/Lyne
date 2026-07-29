@@ -1,7 +1,7 @@
 'use client'
 import { Phone, Truck, CreditCard, ShieldCheck, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
-import { components } from "../api/schema";
+import { components } from "@/src/types/schema";
 import { useLoading } from "../context/LoadingContext";
 import { createUserOrder, deleteCart, getCartItems} from "../api/fetchApi/admin";
 import { useRouter } from 'next/navigation';

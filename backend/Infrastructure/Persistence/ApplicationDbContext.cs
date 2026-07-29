@@ -18,6 +18,7 @@ namespace Infrastructure.Persistence
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<UserFavorite> UserFavorites { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -123,6 +124,13 @@ namespace Infrastructure.Persistence
             // ❌ Видалено оці два рядки (вони спричиняли помилку):
             // builder.Entity<Products>().Property(p => p.Color).HasConversion<int>();
             // builder.Entity<Products>().Property(p => p.Size).HasConversion<int>();
+
+            builder.Entity<UserFavorite>()
+    .HasOne(f => f.User).WithMany().HasForeignKey(f => f.UserId).OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<UserFavorite>()
+                .HasOne(f => f.Product).WithMany().HasForeignKey(f => f.ProductId).OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<UserFavorite>()
+                .HasIndex(f => new { f.UserId, f.ProductId }).IsUnique();
         }
     }
 }

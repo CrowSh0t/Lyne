@@ -100,6 +100,26 @@ namespace LyneBg.Controllers.Products
             }
         }
 
+        [HttpPut("set-favorite/{id}")]
+        public async Task<ActionResult<ProductDto>> SetFavorite(int id, [FromBody] bool isFavorite)
+        {
+            try
+            {
+                // Передаємо id та нове значення isFavorite у сервіс
+                var updatedProduct = await _productService.SetFavoriteAsync(id, isFavorite);
+                return Ok(updatedProduct);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating favorite status for product with id {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {

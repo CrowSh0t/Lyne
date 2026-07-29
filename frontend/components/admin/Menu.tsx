@@ -25,7 +25,7 @@ export default function Menu() {
 
     return (
         <div>
-            <div className='flex grab-2 flex-row justify-top items-top'>
+            <div className='flex grab-2 flex-row justify-top items-top h-full'>
                 <div className="bg-[url('/images/admin/mainMenuBackground.png')] flex flex-col items-center w-[402px] h-screen sticky top-0 py-5 border border-[#b0a0d0] overflow-hidden">
                     <h1 className="text-[64px]">LYNE</h1>
                     <h3>Concept store</h3>

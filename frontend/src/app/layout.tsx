@@ -12,7 +12,7 @@ const barlowCondensed = Barlow_Condensed({
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html className={barlowCondensed.variable}>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full min-w-full flex flex-col ">
         <ClientLayout>
           {children}
         </ClientLayout>

@@ -119,6 +119,10 @@ builder.Services.AddScoped<IEmailSender, EmailSender>();
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(ProductMappingProfile).Assembly);
 
+
+builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

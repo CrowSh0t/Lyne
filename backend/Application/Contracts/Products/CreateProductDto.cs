@@ -22,6 +22,8 @@ namespace Application.Contracts.Products
         public List<int> CategoriesId { get; set; }
         public List<int>? MatchProductsId { get; set; }
         public List<string>? ImageUrl { get; set; }
+
+        public bool isFavorite { get; set; }
     }
 
 }

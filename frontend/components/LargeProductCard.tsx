@@ -1,4 +1,4 @@
-import { components } from "@/src/app/api/schema";
+import { components } from "@/src/types/schema";
 import Link from "next/link";
 
 type ProductDto = components["schemas"]["ProductDto"]

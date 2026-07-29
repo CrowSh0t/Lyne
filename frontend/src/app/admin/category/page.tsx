@@ -4,7 +4,7 @@ import { useAdminHeaderStore } from "@/src/app/store/adminHeader";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import BackElement from "../../../../components/BackToMainPageElem";
-import type { components } from "@/src/app/api/schema";
+import { components } from "@/src/types/schema";
 import {getCategories} from "@/src/app/api/fetchApi/admin";
 import UniversalCreateModal from "../../../../components/CreateWindow";
 

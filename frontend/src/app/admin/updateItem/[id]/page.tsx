@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLoading } from "@/src/app/context/LoadingContext";
 import { useAdminHeaderStore } from "@/src/app/store/adminHeader";
 import PhotoButton, { PhotoSlotValue } from "../../../../../components/PhotoBtn";
-import type { components } from "@/src/app/api/schema";
+import { components } from "@/src/types/schema";
 import { getBrands, getColors, getCategories, getProduct} from "@/src/app/api/fetchApi/admin";
 
 type BrandDto = components["schemas"]["BrandDto"];

@@ -1,7 +1,7 @@
 'use client';
 import { useAdminHeaderStore } from '@/src/app/store/adminHeader';
 import { useEffect, useState } from 'react';
-import { components } from '../../api/schema';
+import { components } from "@/src/types/schema";
 import { useLoading } from '../../context/LoadingContext';
 import { deleteOrder, getOrders } from '../../api/fetchApi/admin';
 import BackElement from '../../../../components/BackToMainPageElem';

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLoading } from "@/src/app/context/LoadingContext";
 import { useAdminHeaderStore } from "@/src/app/store/adminHeader";
-import type { components } from "@/src/app/api/schema";
+import { components } from "@/src/types/schema";
 import { getBrands, getProducts} from "@/src/app/api/fetchApi/admin";
 type ProductDto = components["schemas"]["ProductDto"];
 

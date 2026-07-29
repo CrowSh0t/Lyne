@@ -17,5 +17,9 @@ namespace Application.Abstractions
         Task<bool> DeleteProductAsync(int id);
         Task<IEnumerable<ProductDto>> GetProductsByCategoryAsync(int categoryId);
         Task<IEnumerable<ProductDto>> GetProductsByBrandAsync(int brandId);
+
+        Task<ProductDto> SetFavoriteAsync(int id, bool isFavorite);
+
+
     }
 }

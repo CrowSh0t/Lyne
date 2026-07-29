@@ -2,12 +2,6 @@
 using Application.Contracts.Products;
 using AutoMapper;
 using Domains.Entities;
-using Infrastructure.Persistence;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Services
 {
@@ -47,10 +41,10 @@ namespace Infrastructure.Services
             }
             while (await _productRepository.ProductCodeExistsAsync(productCode));
 
-           
-
             var product = _mapper.Map<Products>(createProductDto);
             product.ProductCode = productCode;
+            product.IsFavorite = false;
+
             var createdProduct = await _productRepository.AddAsync(product);
             return _mapper.Map<ProductDto>(createdProduct);
         }
@@ -65,6 +59,20 @@ namespace Infrastructure.Services
             var updatedProduct = await _productRepository.UpdateAsync(existingProduct);
             return _mapper.Map<ProductDto>(updatedProduct);
         }
+
+        public async Task<ProductDto> SetFavoriteAsync(int id, bool isFavorite)
+        {
+            var existingProduct = await _productRepository.GetByIdAsync(id);
+            if (existingProduct == null)
+                throw new KeyNotFoundException($"Product with ID {id} not found");
+
+            existingProduct.IsFavorite = isFavorite;
+
+            var updatedProduct = await _productRepository.UpdateAsync(existingProduct);
+            return _mapper.Map<ProductDto>(updatedProduct);
+        }
+
+        
 
         public async Task<bool> DeleteProductAsync(int id)
         {
@@ -85,7 +93,8 @@ namespace Infrastructure.Services
             var products = await _productRepository.GetByBrandIdAsync(brandId);
             return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
-        private string GenerateProductCode()
+
+        private static string GenerateProductCode()
         {
             return Guid.NewGuid().ToString("N")[..10].ToUpper();
         }

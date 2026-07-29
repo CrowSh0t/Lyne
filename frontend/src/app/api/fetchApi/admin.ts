@@ -1,4 +1,4 @@
-import { components } from "../schema";
+import { components } from "@/src/types/schema";
 
 type ProductDto = components["schemas"]["ProductDto"];
 type CategoryDto = components["schemas"]["CategoryDto"];
@@ -9,6 +9,7 @@ type OrderDto = components["schemas"]["OrderDto"];
 type DiscountDto = components["schemas"]["DiscountDto"];
 type UserDto = components["schemas"]["UserDto"];
 type CartItem = components["schemas"]["CartItem"]
+type UserFavoriteDto = components["schemas"]["UserFavoriteDto"]
 
 type CreateProductDto = components["schemas"]["CreateProductDto"];
 type UpdateProductDto = components["schemas"]["UpdateProductDto"];
@@ -36,8 +37,10 @@ const handleResponse = async (res: Response) => {
 
 
 export const getProducts = async (): Promise<ProductDto[]> => {
+   
     const res = await fetch('/api/products');
     return handleResponse(res);
+    
 }
 
 export const getProduct = async (id: string): Promise<ProductDto> => {
@@ -64,6 +67,18 @@ export const updateProduct = async (id: string, data: UpdateProductDto): Promise
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
+    });
+    return handleResponse(res);
+}
+
+export const setFavorite = async (id: string, isFavorite: boolean): Promise<ProductDto> => {
+    const token = localStorage.getItem("token")
+    const res = await fetch(`/api/products/set-favorite/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+         },
+        body: JSON.stringify(isFavorite),
     });
     return handleResponse(res);
 }
@@ -292,7 +307,11 @@ export const deleteDiscount = async (id: string): Promise<void> => {
 // ---------- Users (Admin) ----------
 
 export const getUsers = async (): Promise<UserDto[]> => {
-    const res = await fetch('/api/admin/users');
+    const token = localStorage.getItem("token");
+    const res = await fetch('/api/admin/users',{
+        method:'GET',
+        headers: {Authorization: `Bearer ${token}`}}
+    );
     return handleResponse(res);
 }
 
@@ -460,3 +479,35 @@ export const getMe = async (): Promise<CartItem[]> => {
 
     return handleResponse(res);
 };
+
+// ---- Favorites ---
+
+function getAuthHeaders(): HeadersInit {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export const getUserFavorites = async (): Promise<UserFavoriteDto[]> => {
+    const res = await fetch('/api/favorites', { headers: getAuthHeaders() });
+    return handleResponse(res);
+}
+
+export const checkIsFavorite = async (productId: number): Promise<boolean> => {
+    const res = await fetch(`/api/favorites/${productId}/check`, { headers: getAuthHeaders() });
+    return handleResponse(res);
+}
+
+export const addToFavorites = async (productId: number): Promise<UserFavoriteDto> => {
+    const res = await fetch(`/api/favorites/${productId}`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+    });
+    return handleResponse(res);
+}
+
+export const removeFromFavorites = async (productId: number): Promise<void> => {
+    await fetch(`/api/favorites/${productId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    });
+}

@@ -1,20 +1,15 @@
-// components/Footer.tsx
 'use client';
 
 export default function Footer() {
     return (
         <footer>
-            {/* Чорна частина */}
-            <div className="bg-black text-white px-16 py-16 w-full">
-                {/* Логотип по центру */}
-                <div className="text-center mb-16">
-                    <h2 className="text-4xl font-light tracking-widest">LYNE</h2>
+            <div className="bg-black text-white px-6 sm:px-10 lg:px-16 py-10 sm:py-12 lg:py-16 w-full">
+                <div className="text-center mb-10 sm:mb-16">
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-light tracking-widest">LYNE</h2>
                     <p className="text-xs tracking-[0.3em] text-gray-400 mt-1">CONCEPT STORE</p>
                 </div>
 
-                {/* Колонки */}
-                <div className="grid grid-cols-4 gap-8">
-                    {/* The Company */}
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
                     <div>
                         <h3 className="text-xs font-bold tracking-widest mb-4">THE COMPANY</h3>
                         <ul className="space-y-2 text-sm text-gray-300">
@@ -24,7 +19,6 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Assistance */}
                     <div>
                         <h3 className="text-xs font-bold tracking-widest mb-4">ASSISTANCE</h3>
                         <ul className="space-y-2 text-sm text-gray-300">
@@ -39,7 +33,6 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Legal */}
                     <div>
                         <h3 className="text-xs font-bold tracking-widest mb-4">LEGAL</h3>
                         <ul className="space-y-2 text-sm text-gray-300">
@@ -50,30 +43,29 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Follow Us */}
                     <div>
                         <h3 className="text-xs font-bold tracking-widest mb-4">FOLLOW US</h3>
                         <ul className="space-y-2 text-sm text-gray-300">
                             <li><a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
+                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0">
                                     <span className="text-black text-xs">f</span>
                                 </span>
                                 Facebook
                             </a></li>
                             <li><a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
+                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0">
                                     <span className="text-black text-xs">ig</span>
                                 </span>
                                 Instagram
                             </a></li>
                             <li><a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
+                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0">
                                     <span className="text-black text-xs">p</span>
                                 </span>
                                 Pinterest
                             </a></li>
                             <li><a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
+                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0">
                                     <span className="text-black text-xs">tt</span>
                                 </span>
                                 TikTok
@@ -82,17 +74,15 @@ export default function Footer() {
                     </div>
                 </div>
 
-                {/* Change location */}
-                <div className="mt-16 text-sm text-gray-400">
+                <div className="mt-10 sm:mt-16 text-xs sm:text-sm text-gray-400 text-center sm:text-left">
                     Change location and language{' '}
-                    <span className="text-white font-medium cursor-pointer hover:underline">
+                    <span className="text-white font-medium cursor-pointer hover:underline block sm:inline mt-1 sm:mt-0">
                         United Kingdom - English ∨
                     </span>
                 </div>
             </div>
 
-            {/* Сіра смужка знизу */}
-            <div className="bg-[#1a1a1a] text-gray-400 text-xs px-16 py-4">
+            <div className="bg-[#1a1a1a] text-gray-400 text-xs px-6 sm:px-10 lg:px-16 py-4 text-center sm:text-left">
                 © 2025 LYNE All rights reserved
             </div>
         </footer>

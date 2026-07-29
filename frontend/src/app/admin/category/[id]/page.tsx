@@ -5,7 +5,7 @@ import { useLoading } from "@/src/app/context/LoadingContext";
 import { useRouter } from "next/navigation";
 import React from "react";
 import PhotoButton, { PhotoSlotValue } from "../../../../../components/PhotoBtn";
-import type { components } from "@/src/app/api/schema";
+import { components } from "@/src/types/schema";
 import { getCategories, getCategory} from "@/src/app/api/fetchApi/admin";
 
 type CategoryDto = components["schemas"]["CategoryDto"];

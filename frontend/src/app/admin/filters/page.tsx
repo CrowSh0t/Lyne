@@ -4,7 +4,7 @@ import SearchElement from "../../../../components/SerchElement";
 import { useLoading } from "@/src/app/context/LoadingContext";
 import Link from "next/link";
 import UniversalCreateModal, { CreateEntityDto } from "../../../../components/CreateWindow";
-import type { components } from "@/src/app/api/schema";
+import { components } from "@/src/types/schema";
 import { getBrands, getCategories, getColors, getSizes } from "@/src/app/api/fetchApi/admin";
 
 type BrandDto = components["schemas"]["BrandDto"];

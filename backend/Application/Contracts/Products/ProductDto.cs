@@ -30,5 +30,7 @@ namespace Application.Contracts.Products
         public List<string>? ImageUrl { get; set; }
 
         public List<DiscountDto>? Discounts { get; set; }
+
+        public bool isFavorite { get; set; }
     }
 }

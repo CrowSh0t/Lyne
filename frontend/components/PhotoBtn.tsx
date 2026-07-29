@@ -99,7 +99,9 @@ export default function PhotoButton({
                         type="button"
                         onClick={() => handleImageClick(idx)}
                         className={`border border-gray-200 outline-none rounded-lg overflow-hidden relative flex items-center justify-center bg-gray-50
-                        ${size === 'xlarge' ? 'w-[520px]-[400px]' : size === 'large' ? 'w-[520px] h-[260px]' : 'w-[130px] h-[130px]'}`}
+                                ${size === 'xlarge' ? 'w-[280px] h-[200px] sm:w-[400px] sm:h-[300px] lg:w-[520px] lg:h-[400px]'
+                                : size === 'large' ? 'w-[280px] h-[160px] sm:w-[400px] sm:h-[200px] lg:w-[520px] lg:h-[260px]'
+                                    : 'w-[100px] h-[100px] sm:w-[130px] sm:h-[130px]'}`}
                         style={preview
                             ? { backgroundImage: `url(${preview})`, backgroundSize: 'cover', backgroundPosition: 'center' }
                             : {}

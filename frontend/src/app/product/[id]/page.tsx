@@ -4,8 +4,8 @@ import React from 'react';
 import SmallProductCard from '@/components/SmallProductCard';
 import Link from 'next/link';
 import { useLoading } from '@/src/app/context/LoadingContext';
-import type { components } from "@/src/app/api/schema";
-import { getBrand, getCategories, getColors, getProduct, getProductByName, getSizes } from '../../api/fetchApi/admin';
+import { components } from "@/src/types/schema";
+import { addToFavorites, checkIsFavorite, getBrand, getCategories, getColors, getProduct, getProductByName, getSizes, removeFromFavorites } from '../../api/fetchApi/admin';
 import AddedToBagModal from '@/components/AddedToBagModal';
 
 
@@ -107,6 +107,7 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const startTimeRef = useRef<number>(Date.now());
     const [isFavorite, setIsFavorite] = useState(false);
+    const [favoriteLoading, setFavoriteLoading] = useState(false);
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
     const [matchProducts, setMatchProducts] = useState<ProductDto[]>([]);
@@ -116,7 +117,6 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
     const [bagItems, setBagItems] = useState<ProductDto[] | null>(null);
     const { setLoading } = useLoading();
 
-    // 1. Завантажуємо базовий товар за id
     useEffect(() => {
         setLoading(true);
         getProduct(id)
@@ -131,9 +131,6 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
 
     const variants = stats?.variants ?? [];
 
-    // Синхронізуємо обраний колір/розмір з товаром, який реально відкрили за id.
-    // Беремо дані з variants (де вони гарантовано коректні), а не з product.colorName/.sizeName,
-    // бо ті можуть бути null якщо бекенд не підвантажив Color/Size navigation properties
     useEffect(() => {
         if (!product) return;
         const matchingVariant = variants.find(v => v.id === product.id);
@@ -141,13 +138,11 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
             setSelectedColor(matchingVariant.color);
             setSelectedSize(matchingVariant.size);
         } else {
-            // variants ще не завантажились (або товар унікальний) - фолбек на сам product
             setSelectedColor(product.colorName ?? null);
             setSelectedSize(product.sizeName ?? null);
         }
     }, [product?.id, variants]);
 
-    // 2. Коли знаємо name товару - тягнемо агреговану статистику (усі кольори/розміри з тим самим name)
     useEffect(() => {
         if (!product?.name) return;
         setLoading(true);
@@ -157,7 +152,6 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                 setStats(statsData);
             })
             .catch(() => {
-                // Якщо запит не вдався - товар унікальний, показуємо тільки його власні дані
                 setStats({
                     name: product.name ?? '',
                     totalCount: 1,
@@ -176,7 +170,6 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
             .finally(() => setLoading(false));
     }, [product?.name]);
 
-    // 3. Довідники бренду/кольорів/розмірів
     useEffect(() => {
         if (!product) return;
         setLoading(true);
@@ -191,7 +184,6 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
         }).finally(() => setLoading(false));
     }, [product?.brandId]);
 
-    // fetch товарів які мечаться
     useEffect(() => {
         if (!product?.matchProductsId?.length) return;
         setLoading(true);
@@ -278,6 +270,50 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
         return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
     }, [current, images.length]);
 
+    useEffect(() => {
+        if (!selectedVariant?.id) return;
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        if (!token) return;
+        setLoading(true);
+        checkIsFavorite(selectedVariant.id)
+            .then(setIsFavorite)
+            .finally(() => setLoading(false))
+            .catch(() => { });
+    }, [selectedVariant?.id]);
+
+    const handleToggleFavorite = async () => {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        if (!token) { alert('Увійдіть щоб додати в улюблені'); return; }
+        if (!selectedVariant?.id) return;
+
+        setFavoriteLoading(true);
+        try {
+            if (isFavorite) {
+                try {
+                    await removeFromFavorites(selectedVariant.id);
+                } catch (err: any) {
+                    // 404 — товару вже немає в улюблених, просто синхронізуємо стейт
+                    if (err.message.includes('404') || err.message.includes('not in favorites')) {
+                        // нічого не робимо, нижче setIsFavorite(false)
+                    } else throw err;
+                }
+                setIsFavorite(false);
+            } else {
+                try {
+                    await addToFavorites(selectedVariant.id);
+                    setIsFavorite(true);
+                } catch (err: any) {
+                    if (err.message.includes('409') || err.message.includes('already')) {
+                        setIsFavorite(true);
+                    } else throw err;
+                }
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setFavoriteLoading(false);
+        }
+    };
     const handleClick = (index: number) => {
         setCurrent(index);
         startTimer(index);
@@ -362,8 +398,6 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
         }
     };
 
-
-
     return (
         <div className='flex flex-col pt-18'>
             <div
@@ -444,7 +478,9 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                             />
                         )}
                         <div className="relative w-[57px] h-[72px] rounded-lg p-4" style={{ background: 'linear-gradient(135deg, #FECBBB, #BAA3A9, #95AEBC)' }}>
-                            <button onClick={() => setIsFavorite(!isFavorite)}
+                            <button
+                                onClick={handleToggleFavorite}
+                                disabled={favoriteLoading}
                                 className="absolute inset-0 flex items-center justify-center"
                             >
                                 <svg
@@ -452,10 +488,11 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                                     height={40}
                                     viewBox="0 0 24 24"
                                     fill={isFavorite ? "white" : "none"}
-                                    stroke={isFavorite ? "white" : "white"}
+                                    stroke="white"
                                     strokeWidth={2}
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
+                                    style={{ opacity: favoriteLoading ? 0.5 : 1 }}
                                 >
                                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                                 </svg>

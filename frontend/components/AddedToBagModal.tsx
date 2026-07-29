@@ -1,7 +1,7 @@
 "use client";
 
 import { X} from "lucide-react";
-import { components } from "@/src/app/api/schema";
+import { components } from "@/src/types/schema";
 
 type CartItem = components["schemas"]["CartItem"];
 

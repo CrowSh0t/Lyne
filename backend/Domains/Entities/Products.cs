@@ -28,5 +28,6 @@ namespace Domains.Entities
 
         public ICollection<Category> Categories { get; set; } = new List<Category>();
         public ICollection<Discount> Discounts { get; set; } = new List<Discount>();
+        public bool IsFavorite { get; set; } = false;
     }
 }
