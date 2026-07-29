@@ -154,49 +154,51 @@ export default function Items() {
                 </div>
 
                 {/* Таблиця */}
-                <table className="w-full text-sm">
-                    <thead>
-                        <tr className="text-left text-xl border-b border-gray-200">
-                            <th className="pb-3 font-normal">Name of the item</th>
-                            <th className="pb-3 font-normal">Brand</th>
-                            <th className="pb-3 font-normal">Code</th>
-                            <th className="pb-3 font-normal">Price</th>
-                            <th className="pb-3 font-normal">Quantity</th>
-                            <th className="pb-3 font-normal">Status</th>
-                            <th className="pb-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filtered.map(p => (
-                            <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                <td className="py-3 flex items-center gap-3">
-                                    {p.imageUrl?.[0] && (
-                                        <Link href={`/admin/updateItem/${p.id}`}>
-                                            <img src={p.imageUrl[0]} alt={p.name || ""} className="w-10 h-12 object-cover rounded" />
-                                        </Link>
-                                    )}
-                                    <span>{p.name}</span>
-                                </td>
-                                <td className="py-3">{brands[p.brandId || 0] ?? "—"}</td>
-                                <td className="py-3 text-gray-400">{p.productCode ?? "—"}</td>
-                                <td className="py-3">{p.price}$</td>
-                                <td className="py-3">{p.stockQuantity != null ? `${p.stockQuantity} item` : "—"}</td>
-                                <td className="py-3">
-                                    <span className={p.status === "available" ? "text-gray-700" : "font-bold"}>
-                                        {p.status ?? "—"}
-                                    </span>
-                                </td>
-                                <td className="py-3">
-                                    <div className="flex gap-3 text-gray-400">
-                                        <Link className="hover:text-black px-2" href={`/admin/updateItem/${p.id}`}><img src={"/images/admin/icons/editIcon.png"} alt={""} width={18} height={18} />
-                                        </Link>
-                                        <button className="hover:text-red-500" onClick={() => handleDelete(p.id || 0)}><img src={"/images/admin/icons/deleteIcon.png"} alt={""} width={18} height={20} /></button>
-                                    </div>
-                                </td>
+                <div className="overflow-y-auto">
+                    <table className="w-full text-sm ">
+                        <thead>
+                            <tr className="text-left text-xl border-b border-gray-200">
+                                <th className="pb-3 font-normal">Name of the item</th>
+                                <th className="pb-3 font-normal">Brand</th>
+                                <th className="pb-3 font-normal">Code</th>
+                                <th className="pb-3 font-normal">Price</th>
+                                <th className="pb-3 font-normal">Quantity</th>
+                                <th className="pb-3 font-normal">Status</th>
+                                <th className="pb-3"></th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {filtered.map(p => (
+                                <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                    <td className="py-3 flex items-center gap-3">
+                                        {p.imageUrl?.[0] && (
+                                            <Link href={`/admin/updateItem/${p.id}`}>
+                                                <img src={p.imageUrl[0]} alt={p.name || ""} className="w-10 h-12 object-cover rounded" />
+                                            </Link>
+                                        )}
+                                        <span>{p.name}</span>
+                                    </td>
+                                    <td className="py-3">{brands[p.brandId || 0] ?? "—"}</td>
+                                    <td className="py-3 text-gray-400">{p.productCode ?? "—"}</td>
+                                    <td className="py-3">{p.price}$</td>
+                                    <td className="py-3">{p.stockQuantity != null ? `${p.stockQuantity} item` : "—"}</td>
+                                    <td className="py-3">
+                                        <span className={p.status === "available" ? "text-gray-700" : "font-bold"}>
+                                            {p.status ?? "—"}
+                                        </span>
+                                    </td>
+                                    <td className="py-3">
+                                        <div className="flex gap-3 text-gray-400">
+                                            <Link className="hover:text-black px-2" href={`/admin/updateItem/${p.id}`}><img src={"/images/admin/icons/editIcon.png"} alt={""} width={18} height={18} />
+                                            </Link>
+                                            <button className="hover:text-red-500" onClick={() => handleDelete(p.id || 0)}><img src={"/images/admin/icons/deleteIcon.png"} alt={""} width={18} height={20} /></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

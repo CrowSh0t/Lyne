@@ -115,7 +115,7 @@ export default function Category() {
                     </div>
                 </div>
                 <div>
-                    <div className="divide-y">
+                    <div className="divide-y overflow-y-auto">
                         {categories.map(cat => (
                             <div key={cat.id} className="flex items-center py-3 px-4 gap-4">
                                 {/* фото */}

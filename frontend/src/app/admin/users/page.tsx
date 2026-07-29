@@ -88,7 +88,7 @@ export default function Users() {
                     </div>
                 </div>
 
-                <div className='px-4 py-2 m-3'>
+                <div className='px-4 py-2 m-3 overflow-y-auto'>
                     <table>
                         <thead>
                             <tr className='text-left text-xl border-b border-gray-200'>
