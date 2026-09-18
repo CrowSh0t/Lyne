@@ -37,7 +37,29 @@ export default function MyAccountPage() {
     });
     const [showCancleOrderModal, setShowCancleOrderModal] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-    const firstOrder = orders?.[0];
+    const visibleOrders = [...(orders ?? [])]
+        .filter((order) => order.status !== 'Cancelled')
+        .sort((a, b) => {
+            const aCreatedAt = (
+                a as OrderDto & { createdAt?: string | Date }
+            ).createdAt;
+
+            const bCreatedAt = (
+                b as OrderDto & { createdAt?: string | Date }
+            ).createdAt;
+
+            const aTime = aCreatedAt
+                ? new Date(aCreatedAt).getTime()
+                : Number(a.id);
+
+            const bTime = bCreatedAt
+                ? new Date(bCreatedAt).getTime()
+                : Number(b.id);
+
+            return bTime - aTime;
+        });
+
+    const firstOrder = visibleOrders[0];
     const { setLoading } = useLoading();
 
     useEffect(() => {
@@ -64,15 +86,35 @@ export default function MyAccountPage() {
     }, [name])
 
     useEffect(() => {
-        if (!orders?.length) return;
-        const allItems = orders.flatMap(o => o.items ?? []);
-        const uniqueIds = [...new Set(allItems.map(i => i.productId).filter(Boolean))] as number[];
+        if (!visibleOrders.length) {
+            setCartProducts({});
+            return;
+        }
+
+        const allItems = visibleOrders.flatMap((order) => order.items ?? []);
+
+        const uniqueIds = [
+            ...new Set(
+                allItems
+                    .map((item) => item.productId)
+                    .filter(Boolean)
+            ),
+        ] as number[];
 
         Promise.all(
-            uniqueIds.map(id => getProduct(String(id)).then(p => ({ id, product: p })))
-        ).then(results => {
+            uniqueIds.map((id) =>
+                getProduct(String(id)).then((product) => ({
+                    id,
+                    product,
+                }))
+            )
+        ).then((results) => {
             const map: Record<number, ProductDto> = {};
-            results.forEach(({ id, product }) => { map[id] = product; });
+
+            results.forEach(({ id, product }) => {
+                map[id] = product;
+            });
+
             setCartProducts(map);
         });
     }, [orders]);
@@ -219,24 +261,30 @@ export default function MyAccountPage() {
                             <div className="flex flex-col lg:flex-row gap-4 items-stretch">
                                 {/* Ліва колонка — замовлення */}
                                 <div className="overflow-y-auto max-h-[500px] lg:max-h-[700px] w-full lg:w-1/2">
-                                    {orders && orders.length > 0 ? (
-                                        orders.map((o) => (
+                                    {visibleOrders.length > 0 ? (
+                                        visibleOrders.map((o) => (
                                             <div key={o.id}>
-                                                <div className='p-2'>
-                                                    {o.items?.map((i) => i.productId && cartProducts[i.productId] && (
-                                                        <div key={i.productId}>
-                                                            <ProductCardForCart p={i} />
-                                                        </div>
-                                                    ))}
+                                                <div className="p-2">
+                                                    {o.items?.map((i) =>
+                                                        i.productId &&
+                                                        cartProducts[i.productId] && (
+                                                            <div key={i.productId}>
+                                                                <ProductCardForCart p={i} cartItemId={String(i.productId)} />
+                                                            </div>
+                                                        )
+                                                    )}
                                                 </div>
                                             </div>
                                         ))
                                     ) : (
-                                        <div className='flex flex-col sm:flex-row gap-4 w-full items-start sm:items-center'>
-                                            <h3 className='text-xl sm:text-3xl'>OOPS, you don't have any orders for now</h3>
+                                        <div className="flex flex-col sm:flex-row gap-4 w-full items-start sm:items-center">
+                                            <h3 className="text-xl sm:text-3xl">
+                                                OOPS, you don't have any orders for now
+                                            </h3>
+
                                             <Link
-                                                className='bg-black flex justify-center items-center sm:ml-auto text-white text-lg sm:text-2xl w-full sm:w-[350px] h-[44px] shrink-0'
-                                                href={'/AllProducts'}
+                                                className="bg-black flex justify-center items-center sm:ml-auto text-white text-lg sm:text-2xl w-full sm:w-[350px] h-[44px] shrink-0"
+                                                href="/AllProducts"
                                             >
                                                 Start now
                                             </Link>

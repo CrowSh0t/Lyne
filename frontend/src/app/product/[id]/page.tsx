@@ -399,7 +399,10 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
         <div className='flex flex-col pt-18'>
             <div
                 className="relative w-full h-[800px] pt-[80px] bg-cover bg-center transition-all duration-700 flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #FECBBB, #BAA3A9, #95AEBC)' }}
+                style={{
+                    background:
+                        'linear-gradient(135deg, rgba(254, 203, 187, 0.8), rgba(186, 163, 169, 0.8), rgba(149, 174, 188, 0.8))'
+                }}
             >
                 <img src={images[current] || '/placeholder.png'} alt='' width={800} height={0} className='object-contain h-full w-auto p-6' />
                 {/* Кнопки */}
@@ -427,10 +430,10 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
             {/* Характеристика товару */}
             <div className='flex items-center gap-2 pl-12'>
                 {/* з ліва */}
-                <div>
-                    <p className='text-2xl'>{brand?.name ?? product?.brandId}</p>
-                    <h2 className='text-4xl'>{product?.name}</h2>
-                    <p className='text-2xl'>{displayPrice}</p>
+                <div className="self-start w-1/2 p-6">
+                    <p className="text-2xl">{brand?.name ?? product?.brandId}</p>
+                    <h2 className="text-4xl">{product?.name}</h2>
+                    <p className="text-2xl">{displayPrice}</p>
 
                     {/* Size select */}
                     <SizeSelector
@@ -442,17 +445,26 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
 
                     {/* Colors */}
                     <div>
-                        <p className='text-2xl p-4'>Color: {selectedColor ?? ''}</p>
-                        <div className='flex p-4 gap-2'>
+                        <p className="text-2xl p-4">
+                            Color: {selectedColor ?? ''}
+                        </p>
+
+                        <div className="flex p-4 gap-2">
                             {availableColors.map((color) => {
                                 const colorInfo = colors.find(c => c.name === color);
+
                                 return (
                                     <div
                                         key={color}
                                         title={color}
                                         onClick={() => handleSelectColor(color)}
-                                        className={`w-[20px] h-[20px] rounded-full border p-2 cursor-pointer ${selectedColor === color ? 'border-black scale-110' : 'border-gray-400'}`}
-                                        style={{ backgroundColor: colorInfo?.hexCode ?? '#ccc' }}
+                                        className={`w-[20px] h-[20px] rounded-full border p-2 cursor-pointer ${selectedColor === color
+                                                ? 'border-black scale-110'
+                                                : 'border-gray-400'
+                                            }`}
+                                        style={{
+                                            backgroundColor: colorInfo?.hexCode ?? '#ccc'
+                                        }}
                                     />
                                 );
                             })}
@@ -460,21 +472,35 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                     </div>
                 </div>
                 {/* з права */}
-                <div className='flex flex-col grad-2 ml-auto w-1/2'>
-                    <div className='p-4 flex flex-row grad-2'>
-                        <button onClick={() => handleAddToBag()}
-                            className="w-full bg-black text-white py-3 flex items-center justify-center gap-2 text-sm font-medium tracking-wide"
+                <div className='flex flex-col grad-2 ml-auto w-1/2 px-4'>
+                    <div className="p-4 flex flex-row gap-3">
+                        <button
+                            onClick={() => handleAddToBag()}
+                            className="flex-1 bg-black text-white p-3 flex items-center justify-center gap-2 text-sm font-medium tracking-wide"
                         >
-                            <img src={'/images/icons/whiteBagIcon.png'} alt={''} width={33} height={29} />
+                            <img
+                                src="/images/icons/whiteBagIcon.png"
+                                alt=""
+                                width={33}
+                                height={29}
+                            />
                             ADD TO BAG
                         </button>
+
                         {bagItems && (
                             <AddedToBagModal
                                 items={bagItems}
                                 onClose={() => setBagItems(null)}
                             />
                         )}
-                        <div className="relative w-[57px] h-[72px] rounded-lg p-4" style={{ background: 'linear-gradient(135deg, #FECBBB, #BAA3A9, #95AEBC)' }}>
+
+                        <div
+                            className="relative w-[57px] h-[72px] rounded-lg"
+                            style={{
+                                background:
+                                    'linear-gradient(135deg, #FECBBB, #BAA3A9, #95AEBC)',
+                            }}
+                        >
                             <button
                                 onClick={handleToggleFavorite}
                                 disabled={favoriteLoading}
@@ -489,15 +515,23 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                                     strokeWidth={2}
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
-                                    style={{ opacity: favoriteLoading ? 0.5 : 1 }}
+                                    style={{
+                                        opacity: favoriteLoading ? 0.5 : 1,
+                                    }}
                                 >
                                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                                 </svg>
                             </button>
                         </div>
                     </div>
-                    <button className='w-full h-[75px] border-2 flex items-center justify-center'>
-                        <img src={'/images/icons/applePayIcon.png'} alt={''} width={90} height={37} />
+                    <button className='h-[75px] border-2 p-4 flex items-center justify-center'>
+                        <img
+                            src="/images/icons/applePayIcon.png"
+                            alt=""
+                            width={90}
+                            height={37}
+                            className="object-contain"
+                        />
                     </button>
                     {/* Внизу з права */}
                     <div>

@@ -4,7 +4,6 @@ import { components } from "@/src/types/schema";
 import { useLoading } from '../context/LoadingContext';
 import { getBrands, getCategories, getColors, getProducts, getSizes } from '../api/fetchApi/admin';
 import Image from 'next/image';
-import Link from 'next/link';
 import PriceRangeSlider from '@/components/PriceRangeSlider';
 import LargeProductCard from '@/components/LargeProductCard';
 
@@ -14,11 +13,10 @@ type SizeDto = components["schemas"]["SizeDto"]
 type ColorDto = components["schemas"]["ColorDto"]
 type CategoryDto = components["schemas"]["CategoryDto"]
 
-// Ключі всіх мульти-вибіркових фільтрів (все, крім ціни — вона діапазон, не набір id)
 type FilterKey = 'category' | 'brand' | 'size' | 'color';
 
 export default function GridToggle() {
-    const [columns, setColumns] = useState(2);
+    const [columns, setColumns] = useState(4);
     const [products, setProducts] = useState<ProductDto[]>([]);
     const [brands, setBrands] = useState<BrandDto[]>([]);
     const [sizes, setSizes] = useState<SizeDto[]>([]);
@@ -28,15 +26,14 @@ export default function GridToggle() {
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // Один об'єкт для всіх мульти-вибіркових фільтрів замість окремого useState на кожен тип
-    const [selectedFilters, setSelectedFilters] = useState<Record<FilterKey, number[]>>({
-        category: [],
-        brand: [],
-        size: [],
-        color: [],
+    
+    const [selectedFilters, setSelectedFilters] = useState<Record<FilterKey, number | null>>({
+        category: null,
+        brand: null,
+        size: null,
+        color: null,
     });
 
-    // Ціновий діапазон — окремо, бо це не набір id, а межі
     const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
 
     const { setLoading } = useLoading()
@@ -45,23 +42,26 @@ export default function GridToggle() {
         setActiveFilter(activeFilter === filterName ? null : filterName);
     };
 
-    // ЄДИНА функція для перемикання будь-якого id в будь-якому фільтрі
+    
     const toggleFilter = (key: FilterKey, id: number) => {
         setSelectedFilters(prev => ({
             ...prev,
-            [key]: prev[key].includes(id)
-                ? prev[key].filter(x => x !== id)
-                : [...prev[key], id],
+            [key]: prev[key] === id ? null : id,
         }));
     };
 
     const clearAllFilters = () => {
-        setSelectedFilters({ category: [], brand: [], size: [], color: [] });
+        setSelectedFilters({
+            category: null,
+            brand: null,
+            size: null,
+            color: null,
+        });
         setPriceRange(null);
     };
 
     const activeFiltersCount =
-        Object.values(selectedFilters).reduce((sum, arr) => sum + arr.length, 0) +
+        Object.values(selectedFilters).filter(value => value !== null).length +
         (priceRange ? 1 : 0);
 
     useEffect(() => {
@@ -78,29 +78,47 @@ export default function GridToggle() {
         }).finally(() => setLoading(false));
     }, [])
 
-    // Одна функція фільтрації по всіх критеріях одразу (AND-логіка між типами фільтрів)
     const filteredProducts = useMemo(() => {
-        return products.filter((p) => {
-            if (selectedFilters.category.length > 0) {
-                const match = p.categoriesId?.some(id => selectedFilters.category.includes(id));
-                if (!match) return false;
+    return products.filter((p) => {
+        if (
+            selectedFilters.category !== null &&
+            !p.categoriesId?.includes(selectedFilters.category)
+        ) {
+            return false;
+        }
+
+        if (
+            selectedFilters.brand !== null &&
+            p.brandId !== selectedFilters.brand
+        ) {
+            return false;
+        }
+
+        if (
+            selectedFilters.size !== null &&
+            p.sizeId !== selectedFilters.size
+        ) {
+            return false;
+        }
+
+        if (
+            selectedFilters.color !== null &&
+            p.colorId !== selectedFilters.color
+        ) {
+            return false;
+        }
+
+        if (priceRange) {
+            const price = p.price ?? 0;
+
+            if (price < priceRange.min || price > priceRange.max) {
+                return false;
             }
-            if (selectedFilters.brand.length > 0) {
-                if (!p.brandId || !selectedFilters.brand.includes(p.brandId)) return false;
-            }
-            if (selectedFilters.size.length > 0) {
-                if (!p.sizeId || !selectedFilters.size.includes(p.sizeId)) return false;
-            }
-            if (selectedFilters.color.length > 0) {
-                if (!p.colorId || !selectedFilters.color.includes(p.colorId)) return false;
-            }
-            if (priceRange) {
-                const price = p.price ?? 0;
-                if (price < priceRange.min || price > priceRange.max) return false;
-            }
-            return true;
-        });
-    }, [products, selectedFilters, priceRange]);
+        }
+
+        return true;
+    });
+}, [products, selectedFilters, priceRange]);
 
     const sidebarContent = (
         <>
@@ -131,7 +149,6 @@ export default function GridToggle() {
         </>
     );
 
-    // Допоміжний компонент для однотипних кнопок-чипів фільтра
     const FilterChips = ({
         items,
         filterKey,
@@ -140,19 +157,23 @@ export default function GridToggle() {
         filterKey: FilterKey;
     }) => (
         <div className="py-4 sm:py-6 flex flex-wrap gap-2 animate-fadeIn bg-white">
-            {items.map((item) => (
-                <button
-                    key={item.id}
-                    onClick={() => toggleFilter(filterKey, item.id ?? 0)}
-                    className={`px-3 sm:px-4 py-2 text-xs font-light transition-colors duration-150 ${
-                        selectedFilters[filterKey].includes(item.id ?? 0)
-                            ? 'bg-black text-white'
-                            : 'bg-[#F9F9F9] hover:bg-gray-200 text-gray-800'
-                    }`}
-                >
-                    {item.name}
-                </button>
-            ))}
+            {items.map((item) => {
+                const id = item.id ?? 0;
+                const isSelected = selectedFilters[filterKey] === id;
+
+                return (
+                    <button
+                        key={id}
+                        onClick={() => toggleFilter(filterKey, id)}
+                        className={`px-3 sm:px-4 py-2 text-xs font-light transition-colors duration-150 ${isSelected
+                                ? 'bg-black text-white'
+                                : 'bg-[#F9F9F9] hover:bg-gray-200 text-gray-800'
+                            }`}
+                    >
+                        {item.name}
+                    </button>
+                );
+            })}
         </div>
     );
 
@@ -237,25 +258,25 @@ export default function GridToggle() {
                                 onClick={() => toggleSubFilter('category')}
                                 className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'category' ? 'font-normal border-b border-black' : ''}`}
                             >
-                                Category{selectedFilters.category.length > 0 ? ` (${selectedFilters.category.length})` : ''} <span className="text-[10px] scale-75">{activeFilter === 'category' ? '▲' : '▼'}</span>
+                                Category{selectedFilters.category !== null ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'category' ? '▲' : '▼'}</span>
                             </button>
                             <button
                                 onClick={() => toggleSubFilter('brand')}
                                 className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'brand' ? 'font-normal border-b border-black' : ''}`}
                             >
-                                Brand{selectedFilters.brand.length > 0 ? ` (${selectedFilters.brand.length})` : ''} <span className="text-[10px] scale-75">{activeFilter === 'brand' ? '▲' : '▼'}</span>
+                                Brand{selectedFilters.brand !== null ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'brand' ? '▲' : '▼'}</span>
                             </button>
                             <button
                                 onClick={() => toggleSubFilter('size')}
                                 className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'size' ? 'font-normal border-b border-black' : ''}`}
                             >
-                                Size{selectedFilters.size.length > 0 ? ` (${selectedFilters.size.length})` : ''} <span className="text-[10px] scale-75">{activeFilter === 'size' ? '▲' : '▼'}</span>
+                                Size{selectedFilters.size !== null ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'size' ? '▲' : '▼'}</span>
                             </button>
                             <button
                                 onClick={() => toggleSubFilter('color')}
                                 className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'color' ? 'font-normal border-b border-black' : ''}`}
                             >
-                                Color{selectedFilters.color.length > 0 ? ` (${selectedFilters.color.length})` : ''} <span className="text-[10px] scale-75">{activeFilter === 'color' ? '▲' : '▼'}</span>
+                                Color{selectedFilters.color !== null ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'color' ? '▲' : '▼'}</span>
                             </button>
                             <button
                                 onClick={() => toggleSubFilter('price')}

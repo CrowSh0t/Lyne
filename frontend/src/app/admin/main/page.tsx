@@ -13,7 +13,7 @@ const stats = [
     { label: "Mounth", image: '/images/admin/MounthStats.png' },
     { label: "Year", image: '/images/admin/YearStats.svg' },
     { label: "Day", image: '/images/admin/DayStats.svg' },
-    { label: "Year", image: '/images/admin/WeekStats.svg' },
+    { label: "Week", image: '/images/admin/WeekStats.svg' },
 ]
 
 const revenue = [
