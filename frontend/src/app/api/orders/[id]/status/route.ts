@@ -7,32 +7,51 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params;
+
     const cookieHeader = req.headers.get("cookie");
     const authHeader = req.headers.get("authorization");
 
-    console.log('authHeader:', authHeader);
-    console.log('forwarding to:', `${BACKEND_URL}/api/orders/${id}/status`);
-    
-
     let body;
+
     try {
         body = await req.json();
     } catch {
-        return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
+        return NextResponse.json(
+            { error: "Invalid body" },
+            { status: 400 }
+        );
     }
-    console.log('body to backend:', JSON.stringify(body));
 
-    const res = await fetch(`${BACKEND_URL}/api/orders/${id}/status`, {
-        method: 'PUT',
+    console.log("authHeader:", authHeader);
+    console.log("forwarding to:", `${BACKEND_URL}/api/orders/${id}/status`);
+    console.log("body to backend:", JSON.stringify(body));
+
+    const res = await fetch(
+        `${BACKEND_URL}/api/orders/${id}/status`,
+        {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+                ...(authHeader ? { Authorization: authHeader } : {}),
+            },
+            body: JSON.stringify(body),
+        }
+    );
+
+    console.log("backend status:", res.status);
+
+    if (res.status === 204) {
+        return new NextResponse(null, { status: 204 });
+    }
+
+    const responseText = await res.text();
+
+    return new NextResponse(responseText, {
+        status: res.status,
         headers: {
-            'Content-Type': 'application/json',
-            ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-            ...(authHeader ? { Authorization: authHeader } : {}),
+            "Content-Type":
+                res.headers.get("content-type") ?? "application/json",
         },
-        body: JSON.stringify(body),
     });
-
-    console.log('backend status:', res.status); // ← і це
-    console.log('body to backend:', JSON.stringify(body));
-    return new NextResponse(null, { status: res.status });
 }

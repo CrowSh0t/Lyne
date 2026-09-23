@@ -1,13 +1,15 @@
 'use client'
 import { components } from "@/src/types/schema";
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import { useAdminHeaderStore } from "@/src/app/store/adminHeader";
 import { getBrands, getCategories, getColors, getProducts, getSizes } from "@/src/app/api/fetchApi/admin";
 import { useLoading } from "@/src/app/context/LoadingContext";
 import { useRouter } from "next/navigation";
 import BackElement from "../../../../components/BackToMainPageElem";
 import PhotoButton, { PhotoSlotValue } from "../../../../components/PhotoBtn";
+import ProductPickerModal from "../../../../components/ProductPickerModal";
 import { createProduct } from "@/src/app/api/fetchApi/admin";
+
 
 type BrandDto = components["schemas"]["BrandDto"];
 type CategoryDto = components["schemas"]["CategoryDto"];
@@ -35,11 +37,12 @@ export default function addNewItem() {
     const [isBanner, setIsBanner] = useState(false)
     const [isNewsletter, setIsNewsletter] = useState(false)
 
-    // Розширюємо тип, щоб підтримувати imageUrl як масив рядків або рядок
-    const [formData, setFormData] = useState<Partial<ProductDto> & { imageUrl?: string[], categoriesId?: number[], details?: string }>({
-        categoriesId: []
+    const [formData, setFormData] = useState<Partial<ProductDto> & { imageUrl?: string[], categoriesId?: number[], details?: string, matchProductsId?: number[] }>({
+        categoriesId: [],
+        matchProductsId: []
     });
     const [showModal, setShowModal] = useState(false);
+    const [showMatchPicker, setShowMatchPicker] = useState(false);
     const [photoSlots, setPhotoSlots] = useState<(PhotoSlotValue | undefined)[]>([])
 
     const capitalizeFirst = (value: string) => {
@@ -106,6 +109,7 @@ export default function addNewItem() {
                 ColorId: formData.colorId ? Number(formData.colorId) : 0,
                 SizeId: formData.sizeId ? Number(formData.sizeId) : 0,
                 CategoriesId: finalCategories,
+                MatchProductsId: formData.matchProductsId ?? [],
                 ImageUrl: uploadedUrls,
                 IsMassMarket: isMassMarket,
                 IsPremium: isPremium,
@@ -280,7 +284,7 @@ export default function addNewItem() {
                                                 className="hidden"
                                             />
                                             <div className={`w-5 h-5 rounded-sm flex items-center justify-center transition-colors
-                        ${isChecked ? 'bg-black/50' : 'bg-white border border-gray-300'}`}
+                                                ${isChecked ? 'bg-black/50' : 'bg-white border border-gray-300'}`}
                                             >
                                                 {isChecked && (
                                                     <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
@@ -292,6 +296,40 @@ export default function addNewItem() {
                                         </label>
                                     );
                                 })}
+                            </div>
+                            <div className="col-span-2 pt-4">
+                                <h2 className="text-xl mb-2">Complete the look</h2>
+                                <p className="text-sm text-gray-400 mb-2">
+                                    Show in "Complete the Look" on product page.
+                                </p>
+                                <div className="flex flex-wrap gap-2 items-center">
+                                    {(formData.matchProductsId || []).map(id => {
+                                        const p = products.find(pr => pr.id === id);
+                                        if (!p) return null;
+                                        return (
+                                            <div key={id} className="relative w-16 h-20 bg-gray-100 rounded overflow-hidden">
+                                                <img src={p.imageUrl?.[0] || ""} alt={p.name || ""} className="w-full h-full object-cover" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData(prev => ({
+                                                        ...prev,
+                                                        matchProductsId: (prev.matchProductsId || []).filter(mid => mid !== id)
+                                                    }))}
+                                                    className="absolute top-0.5 right-0.5 w-4 h-4 bg-black/70 text-white text-xs rounded-full flex items-center justify-center"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowMatchPicker(true)}
+                                        className="w-16 h-20 rounded border-2 border-dashed border-gray-300 text-gray-400 text-3xl flex items-center justify-center hover:border-gray-500 hover:text-gray-600"
+                                    >
+                                        +
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -404,6 +442,18 @@ export default function addNewItem() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showMatchPicker && (
+                <ProductPickerModal
+                    products={products}
+                    selectedIds={formData.matchProductsId || []}
+                    onClose={() => setShowMatchPicker(false)}
+                    onConfirm={(ids) => {
+                        setFormData(prev => ({ ...prev, matchProductsId: ids }));
+                        setShowMatchPicker(false);
+                    }}
+                />
             )}
         </div>
     )

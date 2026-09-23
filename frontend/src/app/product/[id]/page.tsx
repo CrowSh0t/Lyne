@@ -5,7 +5,7 @@ import SmallProductCard from '@/components/SmallProductCard';
 import Link from 'next/link';
 import { useLoading } from '@/src/app/context/LoadingContext';
 import { components } from "@/src/types/schema";
-import { addToFavorites, checkIsFavorite, getBrand, getCategories, getColors, getProduct, getProductByName, getSizes, removeFromFavorites } from '../../api/fetchApi/admin';
+import { addToFavorites, checkIsFavorite, getBrand,getColors, getCompleteTheLook, getProduct, getProductByName, getSizes, removeFromFavorites } from '../../api/fetchApi/admin';
 import AddedToBagModal from '@/components/AddedToBagModal';
 
 type ProductDto = components["schemas"]["ProductDto"];
@@ -13,7 +13,7 @@ type BrandDto = components["schemas"]["BrandDto"]
 type ColorDto = components["schemas"]["ColorDto"]
 type SizeDto = components["schemas"]["SizeDto"]
 
-// Форма відповіді нового бекенд-ендпоінту GET /api/products/stats/{name}
+
 interface ProductStatsVariant {
     id?: number;
     size: string | null;
@@ -191,12 +191,21 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
         ).then(setMatchProducts).finally(() => setLoading(false));
     }, [product?.matchProductsId]);
 
+
+    useEffect(() => {
+    if (!product?.id) return;
+    setLoading(true);
+    getCompleteTheLook(product.id)
+        .then(setMatchProducts)
+        .catch(() => setMatchProducts([]))
+        .finally(() => setLoading(false));
+}, [product?.id]);
+
     // --- Групування варіантів ---
 
     const availableColors = stats?.availableColors ?? [];
     const availableSizes = stats?.availableSizes ?? [];
 
-    // Розміри, які реально є в наявності для обраного кольору
     const availableSizesForColor = useMemo(() => {
         if (selectedColor == null) return availableSizes;
         const list = variants
@@ -542,30 +551,32 @@ export default function ItemById({ params }: { params: Promise<{ id: string }> }
                             </ul>
                         </AccordionItem>
                         <AccordionItem title='DILIVERY & RETURNS'>
-                            <p className='text-2xl'>Some will be nere</p>
+                            <p className='text-2xl'>Some will be here</p>
                         </AccordionItem>
                         <AccordionItem title='PAYMENT OPTIONS'>
-                            <p className='text-2xl'>Some will be nere</p>
+                            <p className='text-2xl'>Some will be here</p>
                         </AccordionItem>
                     </div>
                 </div>
 
             </div>
             {/* Complete the look */}
-            <div className='py-9'>
-                <h2 className='text-center text-2xl tracking-widest mb-8'>Complete the Look</h2>
-                <div className='py-9 flex gap-8 justify-center'>
-                    {matchProducts.map(p => (
-                        <Link key={p.id} href={`/product/${p.id}`}>
-                            <SmallProductCard
-                                key={p.id}
-                                product={p}
-                                brandName={brand?.name || ''}
-                            />
-                        </Link>
-                    ))}
+            {matchProducts.length > 0 && (
+                <div className='py-9'>
+                    <h2 className='text-center text-2xl tracking-widest mb-8'>Complete the Look & same products</h2>
+                    <div className='py-9 flex gap-8 justify-center'>
+                        {matchProducts.map(p => (
+                            <Link key={p.id} href={`/product/${p.id}`}>
+                                <SmallProductCard
+                                    key={p.id}
+                                    product={p}
+                                    brandName={brand?.name || ''}
+                                />
+                            </Link>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

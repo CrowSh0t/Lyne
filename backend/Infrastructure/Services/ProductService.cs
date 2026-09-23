@@ -98,5 +98,24 @@ namespace Infrastructure.Services
         {
             return Guid.NewGuid().ToString("N")[..10].ToUpper();
         }
+
+        public async Task<IEnumerable<ProductDto>> GetCompleteTheLookAsync(int id, int take = 4)
+        {
+            var product = await _productRepository.GetByIdAsync(id);
+            if (product == null)
+                throw new KeyNotFoundException($"Product with ID {id} not found");
+
+            if (product.MatchProductsId != null && product.MatchProductsId.Any())
+            {
+                var manualMatches = await _productRepository.GetProductsByIdsAsync(product.MatchProductsId);
+                var manualList = manualMatches.Where(p => p.Id != id).Take(take).ToList();
+                if (manualList.Any())
+                    return _mapper.Map<IEnumerable<ProductDto>>(manualList);
+            }
+
+            var primaryCategoryId = product.CategoriesId?.FirstOrDefault() ?? 0;
+            var suggested = await _productRepository.GetSuggestedMatchesAsync(id, primaryCategoryId, take);
+            return _mapper.Map<IEnumerable<ProductDto>>(suggested);
+        }
     }
 }

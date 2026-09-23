@@ -523,3 +523,8 @@ export const removeFromFavorites = async (productId: number): Promise<void> => {
         headers: getAuthHeaders(),
     });
 }
+
+export const getCompleteTheLook = async (id: string | number, take: number = 8): Promise<ProductDto[]> => {
+    const res = await fetch(`/api/products/${id}/complete-the-look?take=${take}`);
+    return handleResponse(res);
+}

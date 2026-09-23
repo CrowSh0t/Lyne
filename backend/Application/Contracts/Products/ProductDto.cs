@@ -32,5 +32,6 @@ namespace Application.Contracts.Products
         public List<DiscountDto>? Discounts { get; set; }
 
         public bool isFavorite { get; set; }
+        
     }
 }

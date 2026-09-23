@@ -18,16 +18,16 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Products>> GetAllAsync()
         {
             return await _context.Products
-                .Include(p => p.Brand)        // ТІЛЬКИ Brand - це навігаційна властивість
-                .Include(p => p.Categories)   // Категорії також можна включити
+                .Include(p => p.Brand)
+                .Include(p => p.Categories)
                 .ToListAsync();
         }
 
         public async Task<Products> GetByIdAsync(int id)
         {
             return await _context.Products
-                .Include(p => p.Brand)        // ТІЛЬКИ Brand
-                .Include(p => p.Categories)   // Категорії
+                .Include(p => p.Brand)
+                .Include(p => p.Categories)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
         public async Task<IEnumerable<Products>> GetProductsByIdsAsync(List<int> productIds)
@@ -63,8 +63,8 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Products>> GetByCategoryIdAsync(int categoryId)
         {
             return await _context.Products
-                .Include(p => p.Brand)        // ТІЛЬКИ Brand
-                .Include(p => p.Categories)   // Категорії
+                .Include(p => p.Brand)
+                .Include(p => p.Categories)
                 .Where(p => p.Categories.Any(c => c.Id == categoryId))
                 .ToListAsync();
         }
@@ -72,8 +72,8 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Products>> GetByBrandIdAsync(int brandId)
         {
             return await _context.Products
-                .Include(p => p.Brand)        // ТІЛЬКИ Brand
-                .Include(p => p.Categories)   // Категорії
+                .Include(p => p.Brand)
+                .Include(p => p.Categories)
                 .Where(p => p.BrandId == brandId)
                 .ToListAsync();
         }
@@ -87,6 +87,49 @@ namespace Infrastructure.Repositories
         {
             return await _context.Products
                 .AnyAsync(i => i.ProductCode == productCode);
-       }
+        }
+
+        public async Task<IEnumerable<Products>> GetSuggestedMatchesAsync(int productId, int excludeCategoryId, int take)
+        {
+            var source = await _context.Products
+        .AsNoTracking()
+        .Include(p => p.Categories)
+        .FirstOrDefaultAsync(p => p.Id == productId);
+
+            if (source == null)
+                return Enumerable.Empty<Products>();
+
+            var sourceCategoryIds = source.Categories.Select(c => c.Id).ToHashSet();
+
+            var candidates = _context.Products
+                .AsNoTracking()
+                .Include(p => p.Brand)
+                .Include(p => p.Color)
+                .Include(p => p.Categories)
+                .Where(p => p.Id != productId);
+
+            if (excludeCategoryId > 0)
+            {
+                candidates = candidates.Where(p => !p.Categories.Any(c => c.Id == excludeCategoryId));
+            }
+
+            var candidateList = await candidates.ToListAsync();
+
+            var scored = candidateList
+                .Select(p => new
+                {
+                    Product = p,
+                    Score = (p.BrandId == source.BrandId ? 2 : 0)
+                          + (p.ColorId == source.ColorId ? 2 : 0)
+                          + (p.Categories.Any(c => sourceCategoryIds.Contains(c.Id)) ? 1 : 0)
+                })
+                .Where(x => x.Score > 0)
+                .OrderByDescending(x => x.Score)
+                .ThenByDescending(x => x.Product.Id)
+                .Take(take)
+                .Select(x => x.Product);
+
+            return scored.ToList();
+        }
     }
 }

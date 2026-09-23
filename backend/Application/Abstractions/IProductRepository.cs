@@ -19,6 +19,7 @@ namespace Application.Abstractions
         Task<bool> ExistsAsync(int id);
         Task<IEnumerable<Products>> GetProductsByIdsAsync(List<int> productIds);
         Task<bool> ProductCodeExistsAsync(string productCode);
+        Task<IEnumerable<Products>> GetSuggestedMatchesAsync(int productId, int excludeCategoryId, int take);
 
     }
 }

@@ -20,6 +20,6 @@ namespace Application.Abstractions
 
         Task<ProductDto> SetFavoriteAsync(int id, bool isFavorite);
 
-
+        Task<IEnumerable<ProductDto>> GetCompleteTheLookAsync(int id, int take = 8);
     }
 }

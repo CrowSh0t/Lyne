@@ -68,8 +68,21 @@ namespace LyneBg.Controllers.Products
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                _logger.LogInformation(
+                    "Creating product {Name}. MatchProductsId: {MatchProductsId}",
+                    createProductDto.Name,
+                    createProductDto.MatchProductsId != null
+                        ? string.Join(",", createProductDto.MatchProductsId)
+                        : "NULL"
+                );
+
                 var createdProduct = await _productService.CreateProductAsync(createProductDto);
-                return CreatedAtAction(nameof(GetById), new { id = createdProduct.Id }, createdProduct);
+
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = createdProduct.Id },
+                    createdProduct
+                );
             }
             catch (Exception ex)
             {
@@ -256,6 +269,25 @@ namespace LyneBg.Controllers.Products
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting total count");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("{id}/complete-the-look")]
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetCompleteTheLook(int id, [FromQuery] int take = 4)
+        {
+            try
+            {
+                var products = await _productService.GetCompleteTheLookAsync(id, take);
+                return Ok(products);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting complete-the-look for product {id}");
                 return StatusCode(500, "Internal server error");
             }
         }
