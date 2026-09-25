@@ -43,9 +43,6 @@ export default function Cart() {
     return (
         <div className="pt-[80px]">
             <div className="flex items-center text-black justify-center underline">
-                <Link href="/AllProducts" className="text-center pt-8 sm:pt-12 pt-[64px] text-sm sm:text-base">
-                    Continue Shopping
-                </Link>
             </div>
 
             <div className="pt-2 flex flex-col lg:flex-row px-4 sm:px-6 lg:px-0 gap-6 lg:gap-0" >
