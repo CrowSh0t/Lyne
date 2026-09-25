@@ -36,7 +36,7 @@ export default function AddedToBagModal({
                                 <p className="font-medium">{item.product?.name}</p>
                                 <p className="font-medium mt-1">{item.product?.price}UAH</p>
                                 <p className="text-gray-400 mt-2">#{item.product?.productCode}</p>
-                                <p className="text-gray-400">Items: {item.product?.stockQuantity}</p>
+                                <p className="text-gray-400">Items: {item.quantity}</p>
                                 <p className="text-gray-400">Size: {item.product?.size?.name}</p>
                             </div>
                         </div>
