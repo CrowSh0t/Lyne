@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import BackElement from "../../../../components/BackToMainPageElem";
 import { components } from "@/src/types/schema";
 import {getCategories} from "@/src/app/api/fetchApi/admin";
-import UniversalCreateModal from "../../../../components/CreateWindow";
+import UniversalCreateModal, { CreateEntityDto } from "../../../../components/CreateWindow";
+
 
 type CategoryDto = components["schemas"]["CategoryDto"];
 
@@ -23,22 +24,22 @@ export default function Category() {
     const [modalType, setModalType] = useState<'categories'>('categories');
     const { setLoading } = useLoading();
 
-    const handleCreateItem = async (name: string) => {
+    const handleCreateItem = async (data: CreateEntityDto) => {
         try {
             const response = await fetch(`/api/${modalType}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ name }),
+                body: JSON.stringify(data),
             });
 
             if (!response.ok) {
                 throw new Error(`Помилка при створенні: ${response.statusText}`);
             }
 
-            const data = await response.json();
-            console.log(`${modalType} успішно створено:`, data);
+            const data2 = await response.json();
+            console.log(`${modalType} успішно створено:`, data2);
             window.location.reload();
         } catch (error) {
             console.error(`Не вдалося створити ${modalType}:`, error);

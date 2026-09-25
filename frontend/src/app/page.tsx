@@ -28,10 +28,10 @@ const sliderData = [
 ];
 
 const categories = [
-  { label: 'WOMEN', href: '/AllProducts', image: '/images/homePage/womenCategory.png' },
-  { label: 'MEN', href: '/AllProducts', image: '/images/homePage/menCategory.png' },
-  { label: 'KIDS', href: '/AllProducts', image: '/images/homePage/kidsCategory.png' },
-  { label: 'ACCESSORIES', href: '/AllProducts', image: '/images/homePage/accessoriesCategory.png' },
+  { label: 'WOMEN', href: '/AllProducts?category=Woman', image: '/images/homePage/womenCategory.png' },
+  { label: 'MEN', href: '/AllProducts?category=Men', image: '/images/homePage/menCategory.png' },
+  { label: 'KIDS', href: '/AllProducts?category=Kids', image: '/images/homePage/kidsCategory.png' },
+  { label: 'ACCESSORIES', href: '/AllProducts?category=Accessories', image: '/images/homePage/accessoriesCategory.png' },
 ];
 
 const defaultImage = '/images/homePage/baseImageForGenderCategory.png';
@@ -175,7 +175,7 @@ export default function Home() {
             SHOP BY CATEGORY
           </p>
           {categories.map((cat) => (
-            <a
+            <Link
               key={cat.label}
               href={cat.href}
               className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl tracking-tight text-[#7B8487] hover:text-black transition-all duration-200 cursor-pointer w-fit"
@@ -183,7 +183,7 @@ export default function Home() {
               onMouseLeave={() => setHoveredImage(defaultImage)}
             >
               {cat.label}
-            </a>
+            </Link>
           ))}
         </div>
 

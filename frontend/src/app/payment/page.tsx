@@ -6,7 +6,8 @@ import { useLoading } from "../context/LoadingContext";
 import { createPaymentIntent, confirmStripeOrder, deleteCart, getCartItems } from "../api/fetchApi/admin";
 import { useRouter } from 'next/navigation';
 import SmallProductCard from "@/components/SmallProductCard";
-import { loadStripe, Stripe, StripeElements } from '@stripe/stripe-js';
+import { loadStripe, Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
+
 
 const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
 
@@ -257,23 +258,22 @@ export const PaymentForm = ({ onPrevStep }: StepProps) => {
     }).finally(() => setLoading(false));
   }, []);
 
-  // Монтуємо Stripe Element коли відкривається модалка
+
+  
   useEffect(() => {
     if (!showCardModal) return;
 
-    let paymentElement: ReturnType<StripeElements['create']> | null = null;
+    let paymentElement: StripePaymentElement | null = null;
 
     const initStripe = async () => {
       setStripeError(null);
       setIsStripeReady(false);
 
       try {
-        // Завантажуємо Stripe SDK
         const stripe = await loadStripe(STRIPE_PUBLISHABLE_KEY);
         if (!stripe) throw new Error('Failed to load Stripe');
         stripeRef.current = stripe;
 
-        // Запитуємо clientSecret з бекенду
         const { clientSecret } = await createPaymentIntent({
           items: cartRef.current.map((item) => ({
             productId: item.productId,
@@ -281,15 +281,17 @@ export const PaymentForm = ({ onPrevStep }: StepProps) => {
           })),
         });
 
-        // Створюємо Elements і монтуємо в модалку
         const elements = stripe.elements({ clientSecret });
         elementsRef.current = elements;
 
-        paymentElement = elements.create('payment', {
+        // створюємо в локальну const — її тип точно ненульовий
+        const el = elements.create('payment', {
           layout: 'tabs',
         });
-        paymentElement.mount('#stripe-card-element');
-        paymentElement.on('ready', () => setIsStripeReady(true));
+        el.mount('#stripe-card-element');
+        el.on('ready', () => setIsStripeReady(true));
+
+        paymentElement = el;
       } catch (err: any) {
         setStripeError(err.message ?? 'Помилка ініціалізації Stripe');
       }
@@ -298,7 +300,6 @@ export const PaymentForm = ({ onPrevStep }: StepProps) => {
     initStripe();
 
     return () => {
-      // Демонтуємо при закритті модалки
       paymentElement?.unmount();
       elementsRef.current = null;
     };
