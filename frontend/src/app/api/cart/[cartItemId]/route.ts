@@ -4,10 +4,10 @@ const BACKEND_URL = 'http://localhost:5097';
 
 export async function DELETE(
   req: NextRequest, 
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ cartItemId: string }> }
 ) {
   try {
-    const { id: cartItemId } = await params;
+    const { cartItemId } = await params;
 
     const authHeader = req.headers.get('authorization');
     const cookieHeader = req.headers.get('cookie');
