@@ -524,6 +524,35 @@ export const removeFromFavorites = async (productId: number): Promise<void> => {
     });
 }
 
+// ---------- Stripe ----------
+
+export const createPaymentIntent = async (data: CreateOrderDto): Promise<{ clientSecret: string; amount: number }> => {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/stripe/create-payment-intent', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(data),
+    });
+    return handleResponse(res);
+};
+
+export const confirmStripeOrder = async (paymentIntentId: string, data: CreateOrderDto): Promise<{ orderId: number }> => {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/stripe/confirm-order', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ paymentIntentId, items: data.items }),
+    });
+    return handleResponse(res);
+};
+
+
 export const getCompleteTheLook = async (id: string | number, take: number = 8): Promise<ProductDto[]> => {
     const res = await fetch(`/api/products/${id}/complete-the-look?take=${take}`);
     return handleResponse(res);
