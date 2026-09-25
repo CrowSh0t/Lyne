@@ -68,10 +68,6 @@ export default function ProductCardForCart({ p, onQuantityChange }: Props) {
           </div>
           <p className="text-sm text-gray-400 mt-1">#{product?.productCode}</p>
           <hr className="my-3 sm:my-4 border-gray-200" />
-          <div className="space-y-2">
-            <h3 className="text-sm">Colour: <span>{product?.colorName}</span></h3>
-            <h3 className="text-sm">Size: <span>{product?.sizeName}</span></h3>
-          </div>
         </div>
 
         <div className="flex items-center justify-between mt-4 sm:mt-6">

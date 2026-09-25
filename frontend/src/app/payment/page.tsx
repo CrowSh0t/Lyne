@@ -76,7 +76,6 @@ export const OrderingDataForm = ({ onNextStep, onPrevStep }: StepProps) => {
   });
 
   const [cart, setCart] = useState<CartDto[]>([]);
-  const [order, setOrder] = useState<OrderDto>();
   const { setLoading } = useLoading();
 
   useEffect(() => {
@@ -103,6 +102,10 @@ export const OrderingDataForm = ({ onNextStep, onPrevStep }: StepProps) => {
 
   const inputBaseStyle = 'w-full bg-gray-50 rounded-lg px-4 py-3.5 text-base text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-black focus:border-black transition duration-150';
   const totalItems = cart.reduce((sum, item) => sum + (item.quantity ?? 1), 0);
+  const totalAmount = cart.reduce(
+    (sum, item) => sum + (item.product?.price ?? 0) * (item.quantity ?? 1),
+    0
+  );
 
   return (
     <div className="flex flex-row">
@@ -150,8 +153,8 @@ export const OrderingDataForm = ({ onNextStep, onPrevStep }: StepProps) => {
           ))}
         </div>
         <div className="p-6">
-          <h1 className="py-4">Total {order?.amount} UAH</h1>
-          <h1>Order amount: {order?.amount} UAH</h1>
+          <h1 className="py-4">Total {totalAmount} UAH</h1>
+          <h1>Order amount: {totalAmount} UAH</h1>
           <br />
           <h1>Shipping cost: Free</h1>
           <br />
@@ -259,7 +262,7 @@ export const PaymentForm = ({ onPrevStep }: StepProps) => {
   }, []);
 
 
-  
+
   useEffect(() => {
     if (!showCardModal) return;
 
