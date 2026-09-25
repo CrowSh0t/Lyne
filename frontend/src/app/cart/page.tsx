@@ -11,13 +11,17 @@ type OrderDto = components["schemas"]["OrderDto"]
 
 export default function Cart() {
     const [cart, setCart] = useState<CartItem[]>([])
+    const [loaded, setLoaded] = useState(false)
     const { setLoading } = useLoading()
 
     useEffect(() => {
         setLoading(true);
         Promise.all([getCartItems()])
             .then(([cartData]: [CartItem[]]) => setCart(cartData))
-            .finally(() => setLoading(false))
+            .finally(() => {
+                setLoading(false)
+                setLoaded(true)
+            })
     }, []);
 
 
@@ -40,12 +44,23 @@ export default function Cart() {
 
     const totalItems = cart.reduce((sum, item) => sum + (item.quantity ?? 1), 0);
 
+    if (loaded && cart.length === 0) {
+        return (
+            <div className="pt-[120px] flex flex-col items-center justify-center gap-6 text-center py-18">
+                <h1 className="text-xl sm:text-2xl">Your shopping bag is empty</h1>
+                <Link href="/">
+                    <button className="bg-black text-white px-8 h-[55px] text-base sm:text-lg">
+                        Continue Shopping
+                    </button>
+                </Link>
+            </div>
+        )
+    }
+
+
     return (
         <div className="pt-[80px]">
             <div className="flex items-center text-black justify-center underline">
-                <Link href="/AllProducts" className="text-center pt-8 sm:pt-12 pt-[64px] text-sm sm:text-base">
-                    Continue Shopping
-                </Link>
             </div>
 
             <div className="pt-2 flex flex-col lg:flex-row px-4 sm:px-6 lg:px-0 gap-6 lg:gap-0" >

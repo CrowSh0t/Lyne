@@ -6,6 +6,7 @@ import { getBrands, getCategories, getColors, getProducts, getSizes } from '../a
 import Image from 'next/image';
 import PriceRangeSlider from '@/components/PriceRangeSlider';
 import LargeProductCard from '@/components/LargeProductCard';
+import { useSearchParams } from 'next/navigation';
 
 type ProductDto = components["schemas"]["ProductDto"]
 type BrandDto = components["schemas"]["BrandDto"]
@@ -25,6 +26,8 @@ export default function GridToggle() {
     const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const searchParams = useSearchParams();
 
     
     const [selectedFilters, setSelectedFilters] = useState<Record<FilterKey, number | null>>({
@@ -77,6 +80,22 @@ export default function GridToggle() {
             setCategories(categoryData);
         }).finally(() => setLoading(false));
     }, [])
+
+    useEffect(() => {
+        if (categories.length === 0) return;
+        const categoryParam = searchParams.get('category');
+        if (!categoryParam) return;
+
+        const matched = categories.find(
+            (c) => c.name?.toLowerCase() === categoryParam.toLowerCase()
+        );
+
+        if (matched?.id != null) {
+            setSelectedFilters(prev => ({ ...prev, category: matched.id! }));
+            setIsFilterPanelOpen(true);
+            setActiveFilter('category');
+        }
+    }, [categories, searchParams]);
 
     const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -140,10 +159,31 @@ export default function GridToggle() {
                 <p className='text-gray-600 font-light text-base'>All</p>
             </div>
             <div className='flex flex-col gap-4 text-gray-400 font-light text-base mb-8'>
-                <p className='hover:text-black cursor-pointer transition-colors'>For Her</p>
-                <p className='hover:text-black cursor-pointer transition-colors'>For Him</p>
-                <p className='hover:text-black cursor-pointer transition-colors'>For kids</p>
-                <p className='hover:text-black cursor-pointer transition-colors'>For the Home</p>
+                {[
+                    { label: 'For Her', match: 'Woman' },
+                    { label: 'For Him', match: 'Men' },
+                    { label: 'For kids', match: 'Kids' },
+                    { label: 'For the Home', match: 'House' },
+                ].map(({ label, match }) => {
+                    const found = categories.find(
+                        (c) => c.name?.toLowerCase() === match.toLowerCase()
+                    );
+                    const isActive = found?.id != null && selectedFilters.category === found.id;
+
+                    return (
+                        <p
+                            key={label}
+                            onClick={() => {
+                                if (found?.id != null) {
+                                    toggleFilter('category', found.id);
+                                }
+                            }}
+                            className={`hover:text-black cursor-pointer transition-colors ${isActive ? 'text-black font-normal' : ''}`}
+                        >
+                            {label}
+                        </p>
+                    );
+                })}
             </div>
             <hr className='border-gray-200' />
         </>

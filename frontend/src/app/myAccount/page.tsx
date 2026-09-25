@@ -38,7 +38,10 @@ export default function MyAccountPage() {
     const [showCancleOrderModal, setShowCancleOrderModal] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
     const visibleOrders = [...(orders ?? [])]
-        .filter((order) => order.status !== 'Cancelled')
+        .filter((order) => {
+            const status = String(order.status ?? '').trim().toLowerCase();
+            return status !== 'cancelled' && status !== 'canceled';
+        })
         .sort((a, b) => {
             const aCreatedAt = (
                 a as OrderDto & { createdAt?: string | Date }
@@ -55,7 +58,7 @@ export default function MyAccountPage() {
             const bTime = bCreatedAt
                 ? new Date(bCreatedAt).getTime()
                 : Number(b.id);
-
+            console.log(orders?.map(o => ({ id: o.id, status: o.status })));
             return bTime - aTime;
         });
 
