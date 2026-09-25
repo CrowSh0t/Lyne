@@ -5,38 +5,33 @@ const BACKEND_URL = 'http://localhost:5097';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const cookieHeader = req.headers.get("cookie");
-    const authHeader = req.headers.get("authorization");
 
-    const res = await fetch(
-      `${BACKEND_URL}/api/auth/login`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-          ...(authHeader ? { Authorization: authHeader } : {}),
-        },
-        body: JSON.stringify(body),
-      }
-    );
+    const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
 
     const rawText = await res.text();
-    console.log("BACKEND RAW RESPONSE:", rawText); // ← подивіться в терміналі, що там реально
+    console.log("BACKEND RAW RESPONSE:", rawText);
 
     let data: any;
     try {
       data = JSON.parse(rawText);
     } catch {
-      // бекенд повернув не-JSON (напр. .NET exception text або HTML error page)
       data = { error: rawText || 'Backend returned non-JSON response' };
     }
 
     const response = NextResponse.json(data, { status: res.status });
 
-    const setCookie = res.headers.get('set-cookie');
-    if (setCookie) {
-      response.headers.set('set-cookie', setCookie);
+    if (res.ok && data.token) {
+      response.cookies.set("access_token", data.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        expires: data.expiresAt ? new Date(data.expiresAt) : undefined,
+      });
     }
 
     return response;

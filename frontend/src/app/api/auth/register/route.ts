@@ -21,9 +21,14 @@ export async function POST(req: NextRequest) {
 
     const response = NextResponse.json(data, { status: res.status });
 
-    const setCookie = res.headers.get('set-cookie');
-    if (setCookie) {
-      response.headers.set('set-cookie', setCookie);
+    if (res.ok && data.token) {
+      response.cookies.set("access_token", data.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        expires: data.expiresAt ? new Date(data.expiresAt) : undefined,
+      });
     }
 
     return response;

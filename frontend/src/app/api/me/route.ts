@@ -4,14 +4,14 @@ const BACKEND_URL = 'http://localhost:5097';
 
 export async function GET(req: NextRequest) {
   try {
-    const cookieHeader = req.headers.get('cookie');
-    const authHeader = req.headers.get('authorization');
+    const token = req.cookies.get("access_token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
 
     const res = await fetch(`${BACKEND_URL}/api/me`, {
-      headers: {
-        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-        ...(authHeader ? { Authorization: authHeader } : {}),
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     const rawText = await res.text();
