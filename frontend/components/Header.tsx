@@ -51,54 +51,54 @@ export default function Header() {
                       View All
                     </a>
                     <a
-                      href="/AllProducts"
+                      href="/AllProducts?sort=new"
                       className="text-base font-normal text-neutral-400 transition-colors hover:text-black"
                     >
                       New
                     </a>
                     <a
-                      href="/AllProducts"
+                      href="/AllProducts?category=Women"
                       className="flex items-center justify-between text-base font-normal text-neutral-400 transition-colors hover:text-black"
                     >
                       <span>Women</span>
                       <ChevronRight className="h-4 w-4 stroke-black stroke-[1.5]" />
                     </a>
                     <a
-                      href="/AllProducts"
+                      href="/AllProducts?category=Men"
                       className="flex items-center justify-between text-base font-normal text-neutral-400 transition-colors hover:text-black"
                     >
                       <span>Men</span>
                       <ChevronRight className="h-4 w-4 stroke-black stroke-[1.5]" />
                     </a>
                     <a
-                      href="/AllProducts"
+                      href="/AllProducts?category=Kids"
                       className="flex items-center justify-between text-base font-normal text-neutral-400 transition-colors hover:text-black"
                     >
                       <span>Kids</span>
                       <ChevronRight className="h-4 w-4 stroke-black stroke-[1.5]" />
                     </a>
                     <a
-                      href="/AllProducts"
+                      href="/AllProducts?category=Bags%20and%20Wallets"
                       className="flex items-center justify-between text-base font-normal text-neutral-400 transition-colors hover:text-black"
                     >
                       <span>Bags and Wallets</span>
                       <ChevronRight className="h-4 w-4 stroke-black stroke-[1.5]" />
                     </a>
                     <a
-                      href="/AllProducts"
+                      href="/AllProducts?category=Accessories"
                       className="flex items-center justify-between text-base font-normal text-neutral-400 transition-colors hover:text-black"
                     >
                       <span>Accessories</span>
                       <ChevronRight className="h-4 w-4 stroke-black stroke-[1.5]" />
                     </a>
                     <a
-                      href="/AllProducts"
+                      href="/AllProducts?category=Home"
                       className="flex items-center justify-between text-base font-normal text-neutral-400 transition-colors hover:text-black"
                     >
                       <span>Home</span>
                       <ChevronRight className="h-4 w-4 stroke-black stroke-[1.5]" />
-                    </a>
-                  </nav>
+                    </a >
+                  </nav >
 
                   {/* Розділювач */}
                   <hr className="my-5 border-neutral-200" />
@@ -129,12 +129,6 @@ export default function Header() {
                       className="text-base font-normal text-neutral-400 transition-colors hover:text-black"
                     >
                       Contact
-                    </a>
-                    <a
-                      href="/AllProducts"
-                      className="text-base font-normal text-neutral-400 transition-colors hover:text-black"
-                    >
-                      Change location and language
                     </a>
                   </nav>
 

@@ -73,13 +73,6 @@ export default function Footer() {
                         </ul>
                     </div>
                 </div>
-
-                <div className="mt-10 sm:mt-16 text-xs sm:text-sm text-gray-400 text-center sm:text-left">
-                    Change location and language{' '}
-                    <span className="text-white font-medium cursor-pointer hover:underline block sm:inline mt-1 sm:mt-0">
-                        United Kingdom - English ∨
-                    </span>
-                </div>
             </div>
 
             <div className="bg-[#1a1a1a] text-gray-400 text-xs px-6 sm:px-10 lg:px-16 py-4 text-center sm:text-left">
