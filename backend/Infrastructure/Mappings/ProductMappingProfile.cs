@@ -35,6 +35,7 @@ namespace Infrastructure.Mappings
 
             CreateMap<CreateBrandDto, Brand>();
             CreateMap<UpdateBrandDto, Brand>();
+
         }
     }
 }

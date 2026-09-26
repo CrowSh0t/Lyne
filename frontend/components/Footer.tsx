@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 export default function Footer() {
     return (
@@ -13,33 +14,33 @@ export default function Footer() {
                     <div>
                         <h3 className="text-xs font-bold tracking-widest mb-4">THE COMPANY</h3>
                         <ul className="space-y-2 text-sm text-gray-300">
-                            <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Design and craft</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Press</a></li>
+                            <li><Link href="/about" className="hover:text-white transition-colors">About</Link></li>
+                            <li><Link href="/design-and-craft" className="hover:text-white transition-colors">Design and craft</Link></li>
+                            <li><Link href="/press" className="hover:text-white transition-colors">Press</Link></li>
                         </ul>
                     </div>
 
                     <div>
                         <h3 className="text-xs font-bold tracking-widest mb-4">ASSISTANCE</h3>
                         <ul className="space-y-2 text-sm text-gray-300">
-                            <li><a href="#" className="hover:text-white transition-colors">Delivery information</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Payments</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Return & Refunds</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Product care</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Size guide</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Fit guide</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Student discount</a></li>
+                            <li><Link href="/delivery" className="hover:text-white transition-colors">Delivery information</Link></li>
+                            <li><Link href="/payments" className="hover:text-white transition-colors">Payments</Link></li>
+                            <li><Link href="/returns" className="hover:text-white transition-colors">Return & Refunds</Link></li>
+                            <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+                            <li><Link href="/product-care" className="hover:text-white transition-colors">Product care</Link></li>
+                            <li><Link href="/size-guide" className="hover:text-white transition-colors">Size guide</Link></li>
+                            <li><Link href="/fit-guide" className="hover:text-white transition-colors">Fit guide</Link></li>
+                            <li><Link href="/student-discount" className="hover:text-white transition-colors">Student discount</Link></li>
                         </ul>
                     </div>
 
                     <div>
                         <h3 className="text-xs font-bold tracking-widest mb-4">LEGAL</h3>
                         <ul className="space-y-2 text-sm text-gray-300">
-                            <li><a href="#" className="hover:text-white transition-colors">Privacy policy</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Terms & conditions</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Cookie notice</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Accessebility</a></li>
+                            <li><Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy policy</Link></li>
+                            <li><Link href="/terms-and-conditions" className="hover:text-white transition-colors">Terms & conditions</Link></li>
+                            <li><Link href="/cookie-notice" className="hover:text-white transition-colors">Cookie notice</Link></li>
+                            <li><Link href="/accessibility" className="hover:text-white transition-colors">Accessibility</Link></li>
                         </ul>
                     </div>
 
@@ -76,7 +77,7 @@ export default function Footer() {
             </div>
 
             <div className="bg-[#1a1a1a] text-gray-400 text-xs px-6 sm:px-10 lg:px-16 py-4 text-center sm:text-left">
-                © 2025 LYNE All rights reserved
+                © 2026 LYNE All rights reserved
             </div>
         </footer>
     );
