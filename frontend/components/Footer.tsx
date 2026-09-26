@@ -46,26 +46,26 @@ export default function Footer() {
                     <div>
                         <h3 className="text-xs font-bold tracking-widest mb-4">FOLLOW US</h3>
                         <ul className="space-y-2 text-sm text-gray-300">
-                            <li><a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0">
+                            <li><a href="https://www.facebook.com/profile.php?id=61594441065654" target="_blank" className="hover:text-white transition-colors flex items-center gap-2">
+                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
                                     <span className="text-black text-xs">f</span>
                                 </span>
                                 Facebook
                             </a></li>
-                            <li><a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0">
+                            <li><a href="https://www.instagram.com/lyneconceptstore/" target="_blank" className="hover:text-white transition-colors flex items-center gap-2">
+                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
                                     <span className="text-black text-xs">ig</span>
                                 </span>
                                 Instagram
                             </a></li>
-                            <li><a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0">
+                            <li><a href="https://pin.it/3LPQqmglG" target="_blank" className="hover:text-white transition-colors flex items-center gap-2">
+                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
                                     <span className="text-black text-xs">p</span>
                                 </span>
                                 Pinterest
                             </a></li>
-                            <li><a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0">
+                            <li><a href="https://www.tiktok.com/@lyneconceptstore" target="_blank" className="hover:text-white transition-colors flex items-center gap-2">
+                                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
                                     <span className="text-black text-xs">tt</span>
                                 </span>
                                 TikTok
