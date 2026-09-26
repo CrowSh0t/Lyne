@@ -143,6 +143,45 @@ namespace LyneBg.Controllers
 
             return Ok(orders);
         }
+        [HttpGet("my-orders")]
+        [Authorize] // Обов'язково потрібен токен
+        public async Task<IActionResult> GetMyOrders()
+        {
+            
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Не вдалося ідентифікувати користувача.");
+            }
+
+           
+            var orders = await _context.Orders
+                .Where(o => o.UserId == userId && o.Status != OrderStatus.Cancelled)
+                .Include(o => o.Items)
+                .ThenInclude(i => i.Product)
+                .OrderByDescending(o => o.CreatedAt)
+                .Select(o => new
+                {
+                    o.Id,
+                    o.UserName,
+                    o.Amount,
+                    PaymentStatus = o.PaymentStatus.ToString(),
+                    Status = o.Status.ToString(),
+                    o.CreatedAt,
+                    Items = o.Items.Select(i => new
+                    {
+                        i.ProductId,
+                        ProductName = i.Product != null ? i.Product.Name : null,
+                        i.Quantity,
+                        i.UnitPrice
+                    })
+                }).ToListAsync();
+
+            return Ok(orders);
+        }
+
+
     }
     
 }

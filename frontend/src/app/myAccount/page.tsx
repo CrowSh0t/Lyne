@@ -1,12 +1,13 @@
 'use client';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { components } from "@/src/types/schema";
 import { useLoading } from '../context/LoadingContext';
-import { deleteOrder, getOrdersbyUserName, getProduct, getProducts, updateOrderStatus } from '../api/fetchApi/admin';
+import { deleteOrder, getProduct, getProducts, updateOrderStatus } from '../api/fetchApi/admin';
 import Link from 'next/link';
 import LargeProductCard from '@/components/LargeProductCard';
 import ProductCardForCart from '@/components/ProductCardForCart';
-import { Mail, Phone, PhoneCall } from 'lucide-react';
+import { Mail, Phone } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 
 type OrderDto = components["schemas"]["OrderDto"]
 type ProductDto = components["schemas"]["ProductDto"]
@@ -14,6 +15,19 @@ type ProductDto = components["schemas"]["ProductDto"]
 export default function MyAccountPage() {
     const inputBaseStyle = 'w-full bg-gray-50 rounded-lg px-4 py-3 sm:py-3.5 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-black focus:border-black transition duration-150';
     const inputSmallStyle = 'input bg-[#F9F9F9] w-full h-[45px] sm:h-[50px] rounded-[3px] px-3';
+
+    // === СТАН ДЛЯ ВКЛАДОК ===
+    type Tab = 'account' | 'orders' | 'contact'
+    const searchParams = useSearchParams();
+    const [activeTab, setActiveTab] = useState<Tab>('account');
+
+    // Автоматично відкриваємо вкладку, якщо є параметр у URL (?tab=contact)
+    useEffect(() => {
+        const tabParam = searchParams.get('tab') as Tab | null;
+        if (tabParam && ['account', 'orders', 'contact'].includes(tabParam)) {
+            setActiveTab(tabParam);
+        }
+    }, [searchParams]);
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -24,17 +38,22 @@ export default function MyAccountPage() {
     const [products, setProducts] = useState<ProductDto[]>([]);
     const [cartProducts, setCartProducts] = useState<Record<number, ProductDto>>({});
     const [deliveryInfo, setDeliveryInfo] = useState<Record<string, string>>({});
-    const today = new Date().toLocaleDateString('uk-UA', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-    });
+    
+    // === СТАН ФОРМИ ЗВЕРНЕНЬ ===
     const [formData, setFormData] = useState({
         Name: '',
         phone: '',
         email: '',
         text: '',
     });
+    const [contactStatus, setContactStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+    const today = new Date().toLocaleDateString('uk-UA', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    });
+    
     const [showCancleOrderModal, setShowCancleOrderModal] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
     const visibleOrders = [...(orders ?? [])]
@@ -43,22 +62,10 @@ export default function MyAccountPage() {
             return status !== 'cancelled' && status !== 'canceled';
         })
         .sort((a, b) => {
-            const aCreatedAt = (
-                a as OrderDto & { createdAt?: string | Date }
-            ).createdAt;
-
-            const bCreatedAt = (
-                b as OrderDto & { createdAt?: string | Date }
-            ).createdAt;
-
-            const aTime = aCreatedAt
-                ? new Date(aCreatedAt).getTime()
-                : Number(a.id);
-
-            const bTime = bCreatedAt
-                ? new Date(bCreatedAt).getTime()
-                : Number(b.id);
-            console.log(orders?.map(o => ({ id: o.id, status: o.status })));
+            const aCreatedAt = (a as OrderDto & { createdAt?: string | Date }).createdAt;
+            const bCreatedAt = (b as OrderDto & { createdAt?: string | Date }).createdAt;
+            const aTime = aCreatedAt ? new Date(aCreatedAt).getTime() : Number(a.id);
+            const bTime = bCreatedAt ? new Date(bCreatedAt).getTime() : Number(b.id);
             return bTime - aTime;
         });
 
@@ -76,70 +83,110 @@ export default function MyAccountPage() {
         if (saved) setDeliveryInfo(JSON.parse(saved));
     }, []);
 
+    // Отримання замовлень і товарів
     useEffect(() => {
-        if (!name) return;
-        setLoading(true);
-        Promise.all([
-            getOrdersbyUserName(name),
-            getProducts()
-        ]).then(([ordersData, productsData]: [OrderDto[], ProductDto[]]) => {
-            setOrders(ordersData);
-            setProducts(productsData);
-        }).finally(() => setLoading(false));
-    }, [name])
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                let myOrdersData = [];
+                if (token) {
+                    const res = await fetch('http://localhost:5097/api/Orders/my-orders', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    if (res.ok) {
+                        myOrdersData = await res.json();
+                    }
+                }
+                const allProductsData = await getProducts();
+                setOrders(myOrdersData);
+                setProducts(allProductsData);
+            } catch (error) {
+                console.error("Помилка мережі:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
+        fetchData();
+    }, [setLoading]);
+
+    // Отримання картинок для товарів у кошику
     useEffect(() => {
-        if (!visibleOrders.length) {
-            setCartProducts({});
+        if (!visibleOrders || visibleOrders.length === 0) {
+            if (Object.keys(cartProducts).length !== 0) {
+                setCartProducts({});
+            }
             return;
         }
-
+        
         const allItems = visibleOrders.flatMap((order) => order.items ?? []);
-
-        const uniqueIds = [
-            ...new Set(
-                allItems
-                    .map((item) => item.productId)
-                    .filter(Boolean)
-            ),
-        ] as number[];
+        const uniqueIds = Array.from(new Set(allItems.map((item) => item.productId).filter(Boolean))) as number[];
 
         Promise.all(
             uniqueIds.map((id) =>
-                getProduct(String(id)).then((product) => ({
-                    id,
-                    product,
-                }))
+                getProduct(String(id)).then((product) => ({ id, product }))
             )
         ).then((results) => {
             const map: Record<number, ProductDto> = {};
-
             results.forEach(({ id, product }) => {
                 map[id] = product;
             });
-
             setCartProducts(map);
         });
-    }, [orders]);
-
-    type Tab = 'account' | 'orders' | 'contact'
-    const [activeTab, setActiveTab] = useState<Tab>('account')
+    }, [visibleOrders]);
 
     const tabs = [
         { id: 'account' as Tab, label: 'My account', icon: '/images/icons/usersIcon.png' },
         { id: 'orders' as Tab, label: 'My orders', icon: '/images/icons/orderIcon.png' },
         { id: 'contact' as Tab, label: 'Contact us', icon: '/images/icons/contactUsIcon.png' },
-    ]
+    ];
 
     const backgrounds: Record<Tab, string> = {
         account: '/images/userAccount/backgroundForMyAccoutPage.png',
         orders: '/images/userAccount/BackgroundMyOrder.jpg',
         contact: '/images/userAccount/ContactUsBG.png',
-    }
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData((prevData) => ({ ...prevData, [name]: value }));
+    };
+
+    const handleContactSubmit = async () => {
+        if (!formData.Name || !formData.email || !formData.phone || !formData.text) {
+            alert("Please fill all required fields!");
+            return;
+        }
+
+        setContactStatus('loading');
+        try {
+            const res = await fetch('http://localhost:5097/api/Inquiries', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: formData.Name,
+                    email: formData.email,
+                    phone: formData.phone,
+                    text: formData.text
+                })
+            });
+
+            if (res.ok) {
+                setContactStatus('success');
+                setFormData({ Name: '', phone: '', email: '', text: '' });
+                setTimeout(() => setContactStatus('idle'), 4000); 
+            } else {
+                setContactStatus('error');
+            }
+        } catch (error) {
+            console.error(error);
+            setContactStatus('error');
+        }
     };
 
     const handleInitiateCancel = (id: string) => {
@@ -173,7 +220,6 @@ export default function MyAccountPage() {
             <div className='relative z-10'>
                 <h1 className="text-xl sm:text-2xl font-medium mb-4 pt-8 sm:pt-10 lg:pt-[48px]">Hello, {name}</h1>
 
-                {/* Таби */}
                 <div className="py-3 sm:p-[16px] flex flex-row flex-wrap items-center gap-3 sm:gap-6 overflow-x-auto">
                     {tabs.map(({ id, label, icon }) => (
                         <button
@@ -191,6 +237,7 @@ export default function MyAccountPage() {
                             localStorage.removeItem('username');
                             localStorage.removeItem('email');
                             localStorage.removeItem('country');
+                            localStorage.removeItem('token'); 
                             window.location.href = '/loginRegisterUser'
                         }}
                         className="flex flex-row items-center gap-2 pb-2 border-b-2 border-transparent whitespace-nowrap text-sm sm:text-base"
@@ -200,7 +247,6 @@ export default function MyAccountPage() {
                     </button>
                 </div>
 
-                {/* Контент під табами */}
                 <div className="mt-6">
                     {activeTab === 'account' && (
                         <div>
@@ -231,19 +277,19 @@ export default function MyAccountPage() {
                                         </div>
                                         <div>
                                             <p className="mb-1 text-sm">City</p>
-                                            <input onChange={(e) => setPassword(e.target.value)} className={inputSmallStyle} />
+                                            <input className={inputSmallStyle} />
                                         </div>
                                         <div>
                                             <p className="mb-1 text-sm">Postcode</p>
-                                            <input onChange={(e) => setPassword(e.target.value)} className={inputSmallStyle} />
+                                            <input className={inputSmallStyle} />
                                         </div>
                                         <div>
                                             <p className="mb-1 text-sm">Street</p>
-                                            <input onChange={(e) => setPassword(e.target.value)} className={inputSmallStyle} />
+                                            <input className={inputSmallStyle} />
                                         </div>
                                         <div>
                                             <p className="mb-1 text-sm">House</p>
-                                            <input onChange={(e) => setPassword(e.target.value)} className={inputSmallStyle} />
+                                            <input className={inputSmallStyle} />
                                         </div>
                                         <div className="flex justify-end mt-3 sm:mt-6">
                                             <button
@@ -262,7 +308,6 @@ export default function MyAccountPage() {
                     {activeTab === 'orders' && (
                         <div>
                             <div className="flex flex-col lg:flex-row gap-4 items-stretch">
-                                {/* Ліва колонка — замовлення */}
                                 <div className="overflow-y-auto max-h-[500px] lg:max-h-[700px] w-full lg:w-1/2">
                                     {visibleOrders.length > 0 ? (
                                         visibleOrders.map((o) => (
@@ -395,9 +440,7 @@ export default function MyAccountPage() {
 
                             <hr className='mt-6 w-full lg:w-1/2' />
 
-                            <div
-                                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-6 sm:gap-y-10 transition-all duration-300 pt-6"
-                            >
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-6 sm:gap-y-10 transition-all duration-300 pt-6">
                                 {products.slice(0, 4).map((p) => (
                                     <LargeProductCard key={p.id} p={p} />
                                 ))}
@@ -410,32 +453,40 @@ export default function MyAccountPage() {
                             <div>
                                 <h1 className='text-lg sm:text-2xl'>You have any questions? Contact us</h1>
                             </div>
+                            
+                            {contactStatus === 'success' && (
+                                <div className="mt-4 p-4 bg-green-100 text-green-700 rounded-md w-full lg:w-1/2">
+                                    Your inquiry has been sent successfully! We will contact you soon.
+                                </div>
+                            )}
+                            {contactStatus === 'error' && (
+                                <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-md w-full lg:w-1/2">
+                                    Something went wrong while sending. Please try again.
+                                </div>
+                            )}
+
                             <div className='flex flex-col lg:flex-row gap-6 lg:gap-2 pt-2'>
                                 <div className='py-4 flex w-full lg:w-1/2 flex-col gap-1'>
                                     <p>Email*</p>
-                                    <input type='text' name="email" value={formData.email} onChange={handleChange} className={inputBaseStyle} />
+                                    <input type='email' name="email" value={formData.email} onChange={handleChange} className={inputBaseStyle} />
                                     <p className="mt-2">Your name*</p>
-                                    <input type='text' name="name" value={formData.Name} onChange={handleChange} className={inputBaseStyle} />
+                                    <input type='text' name="Name" value={formData.Name} onChange={handleChange} className={inputBaseStyle} />
                                     <p className="mt-2">Phone number*</p>
-                                    <input type='text' name="phone" value={formData.phone} onChange={handleChange} className={inputBaseStyle} />
+                                    <input type='tel' name="phone" value={formData.phone} onChange={handleChange} className={inputBaseStyle} />
                                     <p className="mt-2">Text*</p>
                                     <textarea name="text" value={formData.text} onChange={handleChange} className={inputBaseStyle} rows={4} />
+                                    
                                     <button
-                                        className='bg-black text-white w-full sm:w-1/2 h-[44px] px-4 text-base sm:text-2xl text-center mt-3'
-                                        onClick={() => alert("Your email was send")}
+                                        className='bg-black text-white w-full sm:w-1/2 h-[44px] px-4 text-base sm:text-2xl text-center mt-3 disabled:bg-gray-500 transition-colors'
+                                        onClick={handleContactSubmit}
+                                        disabled={contactStatus === 'loading'}
                                     >
-                                        Send an appear
+                                        {contactStatus === 'loading' ? 'Sending...' : 'Send an appeal'}
                                     </button>
                                 </div>
 
                                 <div className='px-0 lg:px-4 space-y-2 w-full lg:w-1/2'>
-                                    <button
-                                        className='bg-black text-white w-full h-[44px] px-4 text-base sm:text-2xl text-center'
-                                        onClick={() => alert("Your email was send")}
-                                    >
-                                        Send an appear
-                                    </button>
-                                    <div className='py-4'>
+                                    <div className='py-4 lg:pt-[84px]'>
                                         <div className='font-semibold text-lg sm:text-2xl flex p-2 items-center gap-2'>
                                             <Phone className="shrink-0" />
                                             <h1 className='font-semibold'>0 (800) 313 234</h1>

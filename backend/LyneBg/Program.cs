@@ -104,7 +104,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ISellingRepository, SellingRepository>();
-
+builder.Services.AddScoped<IInquiryRepository, InquiryRepository>();
 // Services
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IBrandService, BrandService>();
@@ -115,7 +115,7 @@ builder.Services.AddScoped<ISellingService, SellingService>();
 
 builder.Services.AddScoped<JwtTokenFactory>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
-
+builder.Services.AddScoped<IInquiryService, InquiryService>();
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(ProductMappingProfile).Assembly);
 

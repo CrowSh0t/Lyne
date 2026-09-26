@@ -11,6 +11,8 @@ const MENU_ITEMS = [
     { href: '/admin/items', icon: '/images/icons/ItemsIcon.png', label: 'Items', w: 27, h: 27 },
     { href: '/admin/filters', icon: '/images/icons/filtersIcon.png', label: 'Filters', w: 24, h: 24 },
     { href: '/admin/category', icon: '/images/icons/categoryIcon.png', label: 'Category', w: 30, h: 30 },
+    // ДОДАНО НОВИЙ ПУНКТ ДЛЯ ЗВЕРНЕНЬ
+    { href: '/admin/inquiries', icon: '/images/icons/contactUsIcon.png', label: 'Inquiries', w: 28, h: 28 },
 ]
 
 export default function Menu() {

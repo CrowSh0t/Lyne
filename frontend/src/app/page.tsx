@@ -200,11 +200,21 @@ export default function Home() {
 
       {/* Cover із брендами */}
       <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 px-6 sm:px-10 lg:px-16 py-8">
-        <img src="/images/homePage/DiorBrand.png" alt="" className="h-10 sm:h-16 lg:h-[149px] w-auto" />
-        <img src="/images/homePage/PradaBrand.png" alt="" className="h-10 sm:h-16 lg:h-[233px] w-auto" />
-        <img src="/images/homePage/HermesBrand.png" alt="" className="h-10 sm:h-16 lg:h-[189px] w-auto" />
-        <img src="/images/homePage/GucciBrand.png" alt="" className="h-10 sm:h-16 lg:h-[142px] w-auto" />
-        <img src="/images/homePage/CartierBrand.png" alt="" className="h-10 sm:h-16 lg:h-[209px] w-auto" />
+        <Link href="/AllProducts?search=Dior" className="transition-transform duration-300 hover:scale-105">
+          <img src="/images/homePage/DiorBrand.png" alt="Dior" className="h-10 sm:h-16 lg:h-[149px] w-auto" />
+        </Link>
+        <Link href="/AllProducts?search=Prada" className="transition-transform duration-300 hover:scale-105">
+          <img src="/images/homePage/PradaBrand.png" alt="Prada" className="h-10 sm:h-16 lg:h-[233px] w-auto" />
+        </Link>
+        <Link href="/AllProducts?search=Hermes" className="transition-transform duration-300 hover:scale-105">
+          <img src="/images/homePage/HermesBrand.png" alt="Hermes" className="h-10 sm:h-16 lg:h-[189px] w-auto" />
+        </Link>
+        <Link href="/AllProducts?search=Gucci" className="transition-transform duration-300 hover:scale-105">
+          <img src="/images/homePage/GucciBrand.png" alt="Gucci" className="h-10 sm:h-16 lg:h-[142px] w-auto" />
+        </Link>
+        <Link href="/AllProducts?search=Cartier" className="transition-transform duration-300 hover:scale-105">
+          <img src="/images/homePage/CartierBrand.png" alt="Cartier" className="h-10 sm:h-16 lg:h-[209px] w-auto" />
+        </Link>
       </div>
 
       {/* Заголовок "New arrivals" */}

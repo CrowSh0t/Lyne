@@ -29,7 +29,6 @@ export default function GridToggle() {
 
     const searchParams = useSearchParams();
 
-    
     const [selectedFilters, setSelectedFilters] = useState<Record<FilterKey, number | null>>({
         category: null,
         brand: null,
@@ -45,7 +44,6 @@ export default function GridToggle() {
         setActiveFilter(activeFilter === filterName ? null : filterName);
     };
 
-    
     const toggleFilter = (key: FilterKey, id: number) => {
         setSelectedFilters(prev => ({
             ...prev,
@@ -97,47 +95,42 @@ export default function GridToggle() {
         }
     }, [categories, searchParams]);
 
+    // === ОНОВЛЕНО: ДОДАНО ЛОГІКУ ПОШУКУ ===
     const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
-        if (
-            selectedFilters.category !== null &&
-            !p.categoriesId?.includes(selectedFilters.category)
-        ) {
-            return false;
-        }
+        // Дістаємо текст пошуку з URL (наприклад: ?search=худі)
+        const searchQueryParam = searchParams.get('search')?.toLowerCase() || '';
 
-        if (
-            selectedFilters.brand !== null &&
-            p.brandId !== selectedFilters.brand
-        ) {
-            return false;
-        }
-
-        if (
-            selectedFilters.size !== null &&
-            p.sizeId !== selectedFilters.size
-        ) {
-            return false;
-        }
-
-        if (
-            selectedFilters.color !== null &&
-            p.colorId !== selectedFilters.color
-        ) {
-            return false;
-        }
-
-        if (priceRange) {
-            const price = p.price ?? 0;
-
-            if (price < priceRange.min || price > priceRange.max) {
+        return products.filter((p) => {
+            // Фільтр 1: Пошук по назві товару
+            if (searchQueryParam && p.name && !p.name.toLowerCase().includes(searchQueryParam)) {
                 return false;
             }
-        }
 
-        return true;
-    });
-}, [products, selectedFilters, priceRange]);
+            // Інші стандартні фільтри
+            if (selectedFilters.category !== null && !p.categoriesId?.includes(selectedFilters.category)) {
+                return false;
+            }
+            if (selectedFilters.brand !== null && p.brandId !== selectedFilters.brand) {
+                return false;
+            }
+            if (selectedFilters.size !== null && p.sizeId !== selectedFilters.size) {
+                return false;
+            }
+            if (selectedFilters.color !== null && p.colorId !== selectedFilters.color) {
+                return false;
+            }
+            if (priceRange) {
+                const price = p.price ?? 0;
+                if (price < priceRange.min || price > priceRange.max) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    // ДОДАЛИ searchParams В ЗАЛЕЖНОСТІ, щоб товари оновлювались при зміні запиту в URL
+    }, [products, selectedFilters, priceRange, searchParams]);
+    // =====================================
 
     const sidebarContent = (
         <>
@@ -189,13 +182,7 @@ export default function GridToggle() {
         </>
     );
 
-    const FilterChips = ({
-        items,
-        filterKey,
-    }: {
-        items: { id?: number; name?: string | null }[];
-        filterKey: FilterKey;
-    }) => (
+    const FilterChips = ({ items, filterKey }: { items: { id?: number; name?: string | null }[]; filterKey: FilterKey; }) => (
         <div className="py-4 sm:py-6 flex flex-wrap gap-2 animate-fadeIn bg-white">
             {items.map((item) => {
                 const id = item.id ?? 0;
@@ -205,10 +192,7 @@ export default function GridToggle() {
                     <button
                         key={id}
                         onClick={() => toggleFilter(filterKey, id)}
-                        className={`px-3 sm:px-4 py-2 text-xs font-light transition-colors duration-150 ${isSelected
-                                ? 'bg-black text-white'
-                                : 'bg-[#F9F9F9] hover:bg-gray-200 text-gray-800'
-                            }`}
+                        className={`px-3 sm:px-4 py-2 text-xs font-light transition-colors duration-150 ${isSelected ? 'bg-black text-white' : 'bg-[#F9F9F9] hover:bg-gray-200 text-gray-800'}`}
                     >
                         {item.name}
                     </button>
@@ -219,13 +203,10 @@ export default function GridToggle() {
 
     return (
         <div className='pt-16 sm:pt-18 flex min-h-screen bg-white text-black font-sans relative'>
-
-            {/* Сайдбар — десктоп, статичний */}
             <div className='hidden lg:flex w-[240px] min-w-[240px] bg-[#F9F9F9] flex-col pt-8 px-6 border-r border-gray-100'>
                 {sidebarContent}
             </div>
 
-            {/* Сайдбар — мобільний, висувна панель */}
             {isSidebarOpen && (
                 <div className='fixed inset-0 z-40 lg:hidden'>
                     <div className='absolute inset-0 bg-black/40' onClick={() => setIsSidebarOpen(false)} />
@@ -254,32 +235,20 @@ export default function GridToggle() {
                         </div>
 
                         <div className="flex gap-2 sm:hidden">
-                            <button
-                                onClick={() => setColumns(1)}
-                                className={`p-1 opacity-40 hover:opacity-100 transition-opacity ${columns === 1 ? '!opacity-100' : ''}`}
-                            >
+                            <button onClick={() => setColumns(1)} className={`p-1 opacity-40 hover:opacity-100 transition-opacity ${columns === 1 ? '!opacity-100' : ''}`}>
                                 <Image src={'/images/icons/twoColIcon.png'} alt={'oneCol'} width={20} height={20} />
                             </button>
-                            <button
-                                onClick={() => setColumns(2)}
-                                className={`p-1 opacity-40 hover:opacity-100 transition-opacity ${columns === 2 ? '!opacity-100' : ''}`}
-                            >
+                            <button onClick={() => setColumns(2)} className={`p-1 opacity-40 hover:opacity-100 transition-opacity ${columns === 2 ? '!opacity-100' : ''}`}>
                                 <Image src={'/images/icons/fourColIcon.png'} alt={'twoCol'} width={20} height={20} />
                             </button>
                         </div>
                     </div>
 
                     <div className="hidden sm:flex gap-2">
-                        <button
-                            onClick={() => setColumns(2)}
-                            className={`p-1 opacity-40 hover:opacity-100 transition-opacity ${columns === 2 ? '!opacity-100' : ''}`}
-                        >
+                        <button onClick={() => setColumns(2)} className={`p-1 opacity-40 hover:opacity-100 transition-opacity ${columns === 2 ? '!opacity-100' : ''}`}>
                             <Image src={'/images/icons/twoColIcon.png'} alt={'twoCol'} width={24} height={24} />
                         </button>
-                        <button
-                            onClick={() => setColumns(4)}
-                            className={`p-1 opacity-40 hover:opacity-100 transition-opacity ${columns === 4 ? '!opacity-100' : ''}`}
-                        >
+                        <button onClick={() => setColumns(4)} className={`p-1 opacity-40 hover:opacity-100 transition-opacity ${columns === 4 ? '!opacity-100' : ''}`}>
                             <Image src={'/images/icons/fourColIcon.png'} alt={'fourCol'} width={24} height={24} />
                         </button>
                     </div>
@@ -288,40 +257,22 @@ export default function GridToggle() {
                 {isFilterPanelOpen && (
                     <div className="transition-all duration-300 py-2 sm:py-4">
                         <div className="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center py-3 border-b border-gray-200 text-xs sm:text-sm font-light overflow-x-auto">
-                            <button
-                                onClick={() => toggleSubFilter('sort')}
-                                className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'sort' ? 'font-normal border-b border-black' : ''}`}
-                            >
+                            <button onClick={() => toggleSubFilter('sort')} className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'sort' ? 'font-normal border-b border-black' : ''}`}>
                                 Sort by <span className="text-[10px] scale-75">{activeFilter === 'sort' ? '▲' : '▼'}</span>
                             </button>
-                            <button
-                                onClick={() => toggleSubFilter('category')}
-                                className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'category' ? 'font-normal border-b border-black' : ''}`}
-                            >
+                            <button onClick={() => toggleSubFilter('category')} className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'category' ? 'font-normal border-b border-black' : ''}`}>
                                 Category{selectedFilters.category !== null ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'category' ? '▲' : '▼'}</span>
                             </button>
-                            <button
-                                onClick={() => toggleSubFilter('brand')}
-                                className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'brand' ? 'font-normal border-b border-black' : ''}`}
-                            >
+                            <button onClick={() => toggleSubFilter('brand')} className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'brand' ? 'font-normal border-b border-black' : ''}`}>
                                 Brand{selectedFilters.brand !== null ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'brand' ? '▲' : '▼'}</span>
                             </button>
-                            <button
-                                onClick={() => toggleSubFilter('size')}
-                                className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'size' ? 'font-normal border-b border-black' : ''}`}
-                            >
+                            <button onClick={() => toggleSubFilter('size')} className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'size' ? 'font-normal border-b border-black' : ''}`}>
                                 Size{selectedFilters.size !== null ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'size' ? '▲' : '▼'}</span>
                             </button>
-                            <button
-                                onClick={() => toggleSubFilter('color')}
-                                className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'color' ? 'font-normal border-b border-black' : ''}`}
-                            >
+                            <button onClick={() => toggleSubFilter('color')} className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'color' ? 'font-normal border-b border-black' : ''}`}>
                                 Color{selectedFilters.color !== null ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'color' ? '▲' : '▼'}</span>
                             </button>
-                            <button
-                                onClick={() => toggleSubFilter('price')}
-                                className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'price' ? 'font-normal border-b border-black' : ''}`}
-                            >
+                            <button onClick={() => toggleSubFilter('price')} className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'price' ? 'font-normal border-b border-black' : ''}`}>
                                 Price{priceRange ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'price' ? '▲' : '▼'}</span>
                             </button>
                         </div>
@@ -339,17 +290,29 @@ export default function GridToggle() {
                     </div>
                 )}
 
-                <div
-                    className="grid gap-x-3 sm:gap-x-4 gap-y-6 sm:gap-y-10 transition-all duration-300"
-                    style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-                >
-                    {filteredProducts.map((p) => (
-                        <LargeProductCard key={p.id} p={p} />
-                    ))}
-                </div>
+                {/* === ОНОВЛЕНО: Відображення результатів === */}
+                {searchParams.get('search') && (
+                    <div className="mb-6 pb-2 border-b border-gray-100">
+                        <h2 className="text-xl font-medium">
+                            Результати пошуку для: <span className="font-normal italic">"{searchParams.get('search')}"</span>
+                        </h2>
+                    </div>
+                )}
 
-                {filteredProducts.length === 0 && (
-                    <p className="text-gray-400 text-center py-16">No products match selected filters.</p>
+                {filteredProducts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <p className="text-gray-500 text-lg mb-2">На жаль, за вашими критеріями нічого не знайдено.</p>
+                        <button onClick={clearAllFilters} className="text-black underline">Очистити фільтри</button>
+                    </div>
+                ) : (
+                    <div
+                        className="grid gap-x-3 sm:gap-x-4 gap-y-6 sm:gap-y-10 transition-all duration-300"
+                        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+                    >
+                        {filteredProducts.map((p) => (
+                            <LargeProductCard key={p.id} p={p} />
+                        ))}
+                    </div>
                 )}
             </div>
         </div>

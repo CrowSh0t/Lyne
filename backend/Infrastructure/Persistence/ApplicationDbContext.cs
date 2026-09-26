@@ -19,7 +19,8 @@ namespace Infrastructure.Persistence
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<UserFavorite> UserFavorites { get; set; }
-
+        // В ApplicationDbContext.cs
+        public DbSet<SupportInquiry> SupportInquiries { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -131,6 +132,35 @@ namespace Infrastructure.Persistence
                 .HasOne(f => f.Product).WithMany().HasForeignKey(f => f.ProductId).OnDelete(DeleteBehavior.Cascade);
             builder.Entity<UserFavorite>()
                 .HasIndex(f => new { f.UserId, f.ProductId }).IsUnique();
+
+            builder.Entity<SupportInquiry>(builder =>
+            {
+               
+                builder.HasKey(e => e.Id);
+
+                
+                builder.HasOne(e => e.User)
+                       .WithMany() 
+                       .HasForeignKey(e => e.UserId)
+                       .OnDelete(DeleteBehavior.SetNull);
+
+               
+                builder.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                builder.Property(e => e.Email).IsRequired().HasMaxLength(150);
+                builder.Property(e => e.Subject).IsRequired().HasMaxLength(200);
+                builder.Property(e => e.Message).IsRequired().HasMaxLength(2000);
+
+
+                builder.Property(e => e.Status)
+                        .IsRequired();
+
+
+                builder.Property(e => e.AdminNote).HasMaxLength(1000);
+
+               
+                builder.Property(e => e.CreatedAt)
+                       .HasDefaultValueSql("GETUTCDATE()");
+            });
         }
     }
 }
