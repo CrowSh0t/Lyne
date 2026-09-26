@@ -1,0 +1,320 @@
+'use client'
+import { useEffect, useMemo, useState } from 'react';
+import { components } from "@/src/types/schema";
+import { useLoading } from '../context/LoadingContext';
+import { getBrands, getCategories, getColors, getProducts, getSizes } from '../api/fetchApi/admin';
+import Image from 'next/image';
+import PriceRangeSlider from '@/components/PriceRangeSlider';
+import LargeProductCard from '@/components/LargeProductCard';
+import { useSearchParams } from 'next/navigation';
+
+type ProductDto = components["schemas"]["ProductDto"]
+type BrandDto = components["schemas"]["BrandDto"]
+type SizeDto = components["schemas"]["SizeDto"]
+type ColorDto = components["schemas"]["ColorDto"]
+type CategoryDto = components["schemas"]["CategoryDto"]
+
+type FilterKey = 'category' | 'brand' | 'size' | 'color';
+
+export default function GridToggle() {
+    const [columns, setColumns] = useState(4);
+    const [products, setProducts] = useState<ProductDto[]>([]);
+    const [brands, setBrands] = useState<BrandDto[]>([]);
+    const [sizes, setSizes] = useState<SizeDto[]>([]);
+    const [colors, setColors] = useState<ColorDto[]>([]);
+    const [categories, setCategories] = useState<CategoryDto[]>([]);
+    const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+    const [activeFilter, setActiveFilter] = useState<string | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const searchParams = useSearchParams();
+
+    const [selectedFilters, setSelectedFilters] = useState<Record<FilterKey, number | null>>({
+        category: null,
+        brand: null,
+        size: null,
+        color: null,
+    });
+
+    const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
+
+    const { setLoading } = useLoading()
+
+    const toggleSubFilter = (filterName: string) => {
+        setActiveFilter(activeFilter === filterName ? null : filterName);
+    };
+
+    const toggleFilter = (key: FilterKey, id: number) => {
+        setSelectedFilters(prev => ({
+            ...prev,
+            [key]: prev[key] === id ? null : id,
+        }));
+    };
+
+    const clearAllFilters = () => {
+        setSelectedFilters({
+            category: null,
+            brand: null,
+            size: null,
+            color: null,
+        });
+        setPriceRange(null);
+    };
+
+    const activeFiltersCount =
+        Object.values(selectedFilters).filter(value => value !== null).length +
+        (priceRange ? 1 : 0);
+
+    useEffect(() => {
+        setLoading(true);
+        Promise.all([
+            getProducts(), getBrands(), getSizes(), getColors(), getCategories()
+        ]).then(([productsData, brandsData, sizesData, colorsData, categoryData]:
+            [ProductDto[], BrandDto[], SizeDto[], ColorDto[], CategoryDto[]]) => {
+            setProducts(productsData);
+            setBrands(brandsData);
+            setSizes(sizesData);
+            setColors(colorsData);
+            setCategories(categoryData);
+        }).finally(() => setLoading(false));
+    }, [])
+
+    useEffect(() => {
+        if (categories.length === 0) return;
+        const categoryParam = searchParams.get('category');
+        if (!categoryParam) return;
+
+        const matched = categories.find(
+            (c) => c.name?.toLowerCase() === categoryParam.toLowerCase()
+        );
+
+        if (matched?.id != null) {
+            setSelectedFilters(prev => ({ ...prev, category: matched.id! }));
+            setIsFilterPanelOpen(true);
+            setActiveFilter('category');
+        }
+    }, [categories, searchParams]);
+
+    // === ОНОВЛЕНО: ДОДАНО ЛОГІКУ ПОШУКУ ===
+    const filteredProducts = useMemo(() => {
+        // Дістаємо текст пошуку з URL (наприклад: ?search=худі)
+        const searchQueryParam = searchParams.get('search')?.toLowerCase() || '';
+
+        return products.filter((p) => {
+            // Фільтр 1: Пошук по назві товару
+            if (searchQueryParam && p.name && !p.name.toLowerCase().includes(searchQueryParam)) {
+                return false;
+            }
+
+            // Інші стандартні фільтри
+            if (selectedFilters.category !== null && !p.categoriesId?.includes(selectedFilters.category)) {
+                return false;
+            }
+            if (selectedFilters.brand !== null && p.brandId !== selectedFilters.brand) {
+                return false;
+            }
+            if (selectedFilters.size !== null && p.sizeId !== selectedFilters.size) {
+                return false;
+            }
+            if (selectedFilters.color !== null && p.colorId !== selectedFilters.color) {
+                return false;
+            }
+            if (priceRange) {
+                const price = p.price ?? 0;
+                if (price < priceRange.min || price > priceRange.max) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    // ДОДАЛИ searchParams В ЗАЛЕЖНОСТІ, щоб товари оновлювались при зміні запиту в URL
+    }, [products, selectedFilters, priceRange, searchParams]);
+    // =====================================
+
+    const sidebarContent = (
+        <>
+            <div className='flex items-center justify-between mb-4'>
+                <div className='flex items-center gap-2 text-xl font-normal text-black cursor-pointer'>
+                    <span>&lt;</span>
+                    <p>New</p>
+                </div>
+                <button
+                    className='lg:hidden text-2xl px-2'
+                    onClick={() => setIsSidebarOpen(false)}
+                    aria-label="Закрити"
+                >
+                    ×
+                </button>
+            </div>
+            <hr className='border-gray-200 mb-4' />
+            <div className='border-b border-gray-400 pb-1 mb-4 cursor-pointer'>
+                <p className='text-gray-600 font-light text-base'>All</p>
+            </div>
+            <div className='flex flex-col gap-4 text-gray-400 font-light text-base mb-8'>
+                {[
+                    { label: 'For Her', match: 'Woman' },
+                    { label: 'For Him', match: 'Men' },
+                    { label: 'For kids', match: 'Kids' },
+                    { label: 'For the Home', match: 'House' },
+                ].map(({ label, match }) => {
+                    const found = categories.find(
+                        (c) => c.name?.toLowerCase() === match.toLowerCase()
+                    );
+                    const isActive = found?.id != null && selectedFilters.category === found.id;
+
+                    return (
+                        <p
+                            key={label}
+                            onClick={() => {
+                                if (found?.id != null) {
+                                    toggleFilter('category', found.id);
+                                }
+                            }}
+                            className={`hover:text-black cursor-pointer transition-colors ${isActive ? 'text-black font-normal' : ''}`}
+                        >
+                            {label}
+                        </p>
+                    );
+                })}
+            </div>
+            <hr className='border-gray-200' />
+        </>
+    );
+
+    const FilterChips = ({ items, filterKey }: { items: { id?: number; name?: string | null }[]; filterKey: FilterKey; }) => (
+        <div className="py-4 sm:py-6 flex flex-wrap gap-2 animate-fadeIn bg-white">
+            {items.map((item) => {
+                const id = item.id ?? 0;
+                const isSelected = selectedFilters[filterKey] === id;
+
+                return (
+                    <button
+                        key={id}
+                        onClick={() => toggleFilter(filterKey, id)}
+                        className={`px-3 sm:px-4 py-2 text-xs font-light transition-colors duration-150 ${isSelected ? 'bg-black text-white' : 'bg-[#F9F9F9] hover:bg-gray-200 text-gray-800'}`}
+                    >
+                        {item.name}
+                    </button>
+                );
+            })}
+        </div>
+    );
+
+    return (
+        <div className='pt-16 sm:pt-18 flex min-h-screen bg-white text-black font-sans relative'>
+            <div className='hidden lg:flex w-[240px] min-w-[240px] bg-[#F9F9F9] flex-col pt-8 px-6 border-r border-gray-100'>
+                {sidebarContent}
+            </div>
+
+            {isSidebarOpen && (
+                <div className='fixed inset-0 z-40 lg:hidden'>
+                    <div className='absolute inset-0 bg-black/40' onClick={() => setIsSidebarOpen(false)} />
+                    <div className='absolute left-0 top-0 h-full w-[80%] max-w-[300px] bg-[#F9F9F9] flex flex-col pt-8 px-6 overflow-y-auto'>
+                        {sidebarContent}
+                    </div>
+                </div>
+            )}
+
+            <div className='flex-1 p-4 sm:p-6 flex flex-col min-w-0'>
+                <div className='flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-6 border-b border-gray-100 pb-4'>
+                    <div className='flex items-center justify-between gap-2 text-sm uppercase tracking-wider text-gray-700 font-light'>
+                        <div className='flex items-center gap-4'>
+                            <button className='lg:hidden flex items-center gap-1' onClick={() => setIsSidebarOpen(true)}>
+                                <span>≡</span> Categories
+                            </button>
+                            <button onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)} className='flex items-center gap-1'>
+                                <img src={'/images/icons/filtersIcon.png'} className='w-5 h-5' />
+                                <p>Filters & Sort{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}</p>
+                            </button>
+                            {activeFiltersCount > 0 && (
+                                <button onClick={clearAllFilters} className='text-gray-400 hover:text-black underline text-xs'>
+                                    Clear all
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="flex gap-2 sm:hidden">
+                            <button onClick={() => setColumns(1)} className={`p-1 opacity-40 hover:opacity-100 transition-opacity ${columns === 1 ? '!opacity-100' : ''}`}>
+                                <Image src={'/images/icons/twoColIcon.png'} alt={'oneCol'} width={20} height={20} />
+                            </button>
+                            <button onClick={() => setColumns(2)} className={`p-1 opacity-40 hover:opacity-100 transition-opacity ${columns === 2 ? '!opacity-100' : ''}`}>
+                                <Image src={'/images/icons/fourColIcon.png'} alt={'twoCol'} width={20} height={20} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="hidden sm:flex gap-2">
+                        <button onClick={() => setColumns(2)} className={`p-1 opacity-40 hover:opacity-100 transition-opacity ${columns === 2 ? '!opacity-100' : ''}`}>
+                            <Image src={'/images/icons/twoColIcon.png'} alt={'twoCol'} width={24} height={24} />
+                        </button>
+                        <button onClick={() => setColumns(4)} className={`p-1 opacity-40 hover:opacity-100 transition-opacity ${columns === 4 ? '!opacity-100' : ''}`}>
+                            <Image src={'/images/icons/fourColIcon.png'} alt={'fourCol'} width={24} height={24} />
+                        </button>
+                    </div>
+                </div>
+
+                {isFilterPanelOpen && (
+                    <div className="transition-all duration-300 py-2 sm:py-4">
+                        <div className="flex flex-wrap gap-x-4 gap-y-2 items-center justify-center py-3 border-b border-gray-200 text-xs sm:text-sm font-light overflow-x-auto">
+                            <button onClick={() => toggleSubFilter('sort')} className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'sort' ? 'font-normal border-b border-black' : ''}`}>
+                                Sort by <span className="text-[10px] scale-75">{activeFilter === 'sort' ? '▲' : '▼'}</span>
+                            </button>
+                            <button onClick={() => toggleSubFilter('category')} className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'category' ? 'font-normal border-b border-black' : ''}`}>
+                                Category{selectedFilters.category !== null ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'category' ? '▲' : '▼'}</span>
+                            </button>
+                            <button onClick={() => toggleSubFilter('brand')} className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'brand' ? 'font-normal border-b border-black' : ''}`}>
+                                Brand{selectedFilters.brand !== null ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'brand' ? '▲' : '▼'}</span>
+                            </button>
+                            <button onClick={() => toggleSubFilter('size')} className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'size' ? 'font-normal border-b border-black' : ''}`}>
+                                Size{selectedFilters.size !== null ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'size' ? '▲' : '▼'}</span>
+                            </button>
+                            <button onClick={() => toggleSubFilter('color')} className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'color' ? 'font-normal border-b border-black' : ''}`}>
+                                Color{selectedFilters.color !== null ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'color' ? '▲' : '▼'}</span>
+                            </button>
+                            <button onClick={() => toggleSubFilter('price')} className={`flex items-center gap-1 py-1 px-2 cursor-pointer whitespace-nowrap ${activeFilter === 'price' ? 'font-normal border-b border-black' : ''}`}>
+                                Price{priceRange ? ' (1)' : ''} <span className="text-[10px] scale-75">{activeFilter === 'price' ? '▲' : '▼'}</span>
+                            </button>
+                        </div>
+
+                        {activeFilter === 'category' && <FilterChips items={categories} filterKey="category" />}
+                        {activeFilter === 'brand' && <FilterChips items={brands} filterKey="brand" />}
+                        {activeFilter === 'size' && <FilterChips items={sizes} filterKey="size" />}
+                        {activeFilter === 'color' && <FilterChips items={colors} filterKey="color" />}
+
+                        {activeFilter === 'price' && (
+                            <div className="w-full max-w-2xl font-sans py-4 sm:py-6 px-2 select-none">
+                                <PriceRangeSlider onChange={(min, max) => setPriceRange({ min, max })} />
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* === ОНОВЛЕНО: Відображення результатів === */}
+                {searchParams.get('search') && (
+                    <div className="mb-6 pb-2 border-b border-gray-100">
+                        <h2 className="text-xl font-medium">
+                            Результати пошуку для: <span className="font-normal italic">"{searchParams.get('search')}"</span>
+                        </h2>
+                    </div>
+                )}
+
+                {filteredProducts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <p className="text-gray-500 text-lg mb-2">На жаль, за вашими критеріями нічого не знайдено.</p>
+                        <button onClick={clearAllFilters} className="text-black underline">Очистити фільтри</button>
+                    </div>
+                ) : (
+                    <div
+                        className="grid gap-x-3 sm:gap-x-4 gap-y-6 sm:gap-y-10 transition-all duration-300"
+                        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+                    >
+                        {filteredProducts.map((p) => (
+                            <LargeProductCard key={p.id} p={p} />
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
